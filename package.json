@@ -1,0 +1,13 @@
+{
+  "name": "cardia-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Prototipo frontend de priorización cardiovascular para Atención Primaria",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "start": "node scripts/serve.mjs",
+    "check": "node --check src/app.js && node --check src/data.js && node --test tests/domain.test.mjs"
+  },
+  "engines": { "node": ">=20" }
+}
