@@ -1,0 +1,233 @@
+/* Ventanas modales y aviso flotante (toast).
+   Se carga en el orden indicado en main.css: no cambies el orden de los archivos. */
+
+dialog {
+  border: 1px solid #e0e8de;
+  background: #fff;
+  border-radius: 14px;
+  width: min(560px,calc(100% - 32px));
+  padding: 18px;
+  color: #38513e;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 80px #14382030;
+}
+dialog::backdrop {
+  background: #18372d44;
+  backdrop-filter: blur(3px);
+}
+dialog.wide-dialog {
+  width: min(850px,calc(100% - 32px));
+}
+.modal-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 15px;
+}
+.modal-heading h2 {
+  font-size: 20px;
+}
+.modal-heading .icon-button {
+  width: 28px;
+  height: 28px;
+}
+.info-body p {
+  font-size: 14.5px;
+  line-height: 1.8;
+  color: #5c715f;
+  margin-bottom: 13px;
+}
+.info-body strong {
+  font-weight: 600;
+  color: #597455;
+}
+.risk-explanation {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #5d745d;
+  margin: 17px 0;
+}
+.risk-explanation .risk-badge {
+  width: max-content;
+  font-size: 13px;
+}
+.modal-note {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 12px;
+  background: #f6f8f1;
+  border: 1px solid #ebefde;
+  color: #5d7061;
+  border-radius: 7px;
+  font-size: 12.5px;
+  margin-top: 16px;
+}
+.modal-note .icon {
+  width: 14px;
+  height: 14px;
+}
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+.about-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: #f5f9f1;
+  border-radius: 8px;
+  margin-bottom: 13px;
+  color: #5a7359;
+}
+.about-feature p {
+  margin: 6px 0 0;
+  font-size: 14px;
+}
+.about-feature .icon {
+  margin-top: 3px;
+}
+.notification-item {
+  display: flex;
+  gap: 10px;
+  padding: 13px 0;
+  border-bottom: 1px solid #ecf0e2;
+}
+.notification-item p {
+  font-size: 14px;
+  color: #5f7262;
+  margin-top: 5px;
+}
+.notification-item h3 {
+  color: #597158;
+}
+.profile-dialog {
+  text-align: center;
+  padding: 10px 0 14px;
+}
+.profile-dialog .doctor-avatar {
+  width: 60px;
+  height: 60px;
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+.profile-dialog h3 {
+  font-size: 19px;
+}
+.profile-dialog p {
+  font-size: 14px;
+  color: #5b6f61;
+  margin: 7px 0 11px;
+}
+.event-dialog-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.event-dialog-icon {
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 10px;
+  background: #eef5e7;
+  color: #567354;
+}
+.event-dialog-meta .eyebrow {
+  margin: 0;
+  font-size: 12px;
+}
+.event-dialog-meta p {
+  font-size: 13px;
+  color: #5e7264;
+  margin-top: 4px;
+}
+.event-description {
+  font-size: 14.5px;
+  color: #5e7461;
+  line-height: 1.8;
+  margin-bottom: 14px;
+}
+.lab-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+}
+.lab-table th {
+  font-weight: 500;
+  font-size: 13px;
+  text-align: left;
+  background: #f6f9f0;
+  color: #5b705f;
+}
+.lab-table th, .lab-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #ebf0de;
+}
+.lab-table td {
+  color: #5a725a;
+}
+.lab-table td strong {
+  font-weight: 600;
+  color: #587551;
+}
+.lab-table td:last-child {
+  font-size: 12.5px;
+}
+.event-report {
+  padding: 13px;
+  border: 1px solid #e9eedc;
+  border-radius: 8px;
+  background: #fbfcf8;
+}
+.event-report p {
+  font-size: 14.5px;
+  color: #5e7360;
+  margin-top: 9px;
+  line-height: 1.8;
+}
+.dialog-subtitle {
+  font-size: 14.5px;
+  color: #5a705f;
+  margin-top: -13px;
+  margin-bottom: 14px;
+}
+.expanded-chart {
+  margin: 14px 0 18px;
+}
+.expanded-chart .main-chart {
+  max-height: 330px;
+}
+.expanded-chart .chart-summary {
+  padding-left: 14px;
+}
+#toast {
+  position: fixed;
+  bottom: 28px;
+  left: calc(50% + 112px);
+  transform: translate(-50%,15px);
+  max-width: calc(100vw - 40px);
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #294d3e;
+  color: #5d716c;
+  box-shadow: 0 5px 25px #173b2925;
+  font-size: 14.5px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s,transform .2s;
+  z-index: 50;
+}
+#toast.visible {
+  opacity: 1;
+  transform: translate(-50%,0);
+}

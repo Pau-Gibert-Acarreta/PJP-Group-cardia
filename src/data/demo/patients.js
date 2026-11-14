@@ -1,11 +1,12 @@
-import { makeDemoMeasurements } from './demo-measurements.js';
-// Registros ficticios para la demo. No representan un modelo clínico.
+// Pacientes ficticios de la demo. No representan un modelo clínico.
+// En producción estos datos llegarán del backend a través de services/ (ver docs/arquitectura.md).
+import { makeDemoMeasurements } from './measurements.js';
+import { riskLevel } from '../../domain/risk.js';
+import { formatNumber } from '../../utils/format.js';
+import { normalize } from '../../utils/text.js';
+
 export const DEMO_DATE = '2026-11-14';
-export const RISK_LABELS = { high: 'Alto', medium: 'Medio', low: 'Bajo' };
-export function riskLevel(risk) { return risk >= 20 ? 'high' : risk >= 10 ? 'medium' : 'low'; }
-export const formatNumber = (value, digits = 0) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value);
-export const formatDate = (date, long = false) => new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: long ? 'long' : 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(date + 'T12:00:00Z'));
-export const normalize = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
 const records = [
   ['María', 'García López', 67, 'Mujer', 32.4, ['Hipertensión', 'Diabetes tipo 2'], true, '2026-11-10'],
   ['Antonio', 'Martínez Ruiz', 72, 'Hombre', 28.7, ['Hipertensión', 'Enf. renal crónica'], true, '2026-11-09'],
@@ -32,7 +33,7 @@ const records = [
   ['Sergio', 'León Méndez', 33, 'Hombre', 2.9, [], false, '2026-10-05'],
   ['Cristina', 'Méndez Costa', 40, 'Mujer', 2.1, [], false, '2026-10-02']
 ];
-export const patients = records.map(([firstName, lastName, age, sex, risk, conditions, followup, lastTest], i) => {
+export const demoPatients = records.map(([firstName, lastName, age, sex, risk, conditions, followup, lastTest], i) => {
   const high = riskLevel(risk) === 'high';
   const ldl = i === 0 ? 162 : Math.round(84 + risk * 2.1 + (i % 3) * 5);
   const systolic = i === 0 ? 148 : Math.round(112 + risk * 1.1);
@@ -72,23 +73,3 @@ export const patients = records.map(([firstName, lastName, age, sex, risk, condi
   patient.history.hba1c = patient.measurements.hba1c.map(point => point.value);
   return patient;
 });
-export function selectPatients(items, filters) {
-  const query = normalize(filters.search || '');
-  return items.filter(p =>
-    (!query || normalize(p.name + ' ' + p.cip).includes(query)) &&
-    (!filters.risk || filters.risk === 'all' || riskLevel(p.risk) === filters.risk) &&
-    (!filters.sex || filters.sex === 'all' || p.sex === filters.sex) &&
-    (!filters.condition || filters.condition === 'all' || p.conditions.includes(filters.condition)) &&
-    (!filters.age || filters.age === 'all' || (filters.age === '65plus' ? p.age >= 65 : p.age < 65)) &&
-    (!filters.followupOnly || p.followup)
-  ).sort((a, b) => {
-    switch (filters.sort) {
-      case 'risk-asc': return a.risk - b.risk;
-      case 'name': return a.name.localeCompare(b.name, 'es');
-      case 'age': return b.age - a.age;
-      case 'recent': return b.lastTest.localeCompare(a.lastTest);
-      default: return b.risk - a.risk;
-    }
-  });
-}
-

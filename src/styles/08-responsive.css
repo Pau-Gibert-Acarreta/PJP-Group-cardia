@@ -1,0 +1,674 @@
+/* Adaptación a distintos tamaños de pantalla (bloque original).
+   Se carga en el orden indicado en main.css: no cambies el orden de los archivos. */
+
+@media(min-width:1600px) {
+  .content {
+    padding-top: 29px;
+  }
+  .patient-table td {
+    height: 82px;
+  }
+  .stat-card {
+    padding: 16px;
+  }
+  .stat-value {
+    font-size: 40px;
+  }
+  .patient-link {
+    font-size: 15px;
+  }
+  .patient-table td {
+    font-size: 14.5px;
+  }
+  .patient-table th {
+    font-size: 14px;
+  }
+  .toolbar input, .sort-select select, .button {
+    font-size: 14.5px;
+  }
+  .patient-table small {
+    font-size: 13px;
+  }
+  .risk-badge {
+    font-size: 13px;
+  }
+  .trend-cell>span, .followup-toggle, .test-date {
+    font-size: 13px;
+  }
+  .risk-cell>strong {
+    font-size: 17px;
+  }
+  .panel-heading p, .section-heading p {
+    font-size: 14.5px;
+  }
+  .card {
+    padding: 20px;
+  }
+  .section-heading h2 {
+    font-size: 19px;
+  }
+  .factor>span {
+    font-size: 14px;
+  }
+  .factor>strong {
+    font-size: 13px;
+  }
+  .identity-top h2 {
+    font-size: 28px;
+  }
+  .metric-tile>span {
+    font-size: 13px;
+  }
+  .metric-tile strong {
+    font-size: 26px;
+  }
+  .metric-tile small, .metric-tile p {
+    font-size: 12.5px;
+  }
+  .event-date {
+    font-size: 13px;
+  }
+  .timeline-event strong {
+    font-size: 14px;
+  }
+  .event-type {
+    font-size: 12.5px;
+  }
+  .clinical-note>p {
+    font-size: 14px;
+  }
+  .note-editor textarea {
+    font-size: 14.5px;
+  }
+}
+@media(max-width:1200px) {
+  .sidebar {
+    width: 196px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .brand {
+    font-size: 32px;
+    margin-left: 11px;
+  }
+  .main-shell {
+    margin-left: 196px;
+  }
+  .content {
+    padding: 20px 17px;
+  }
+  .topbar {
+    padding: 0 17px;
+  }
+  .topbar-right {
+    gap: 12px;
+  }
+  .doctor>.icon {
+    margin-left: 0;
+  }
+  .date-label {
+    font-size: 12.5px;
+  }
+  .stats-grid {
+    gap: 12px;
+  }
+  .stat-card {
+    padding: 11px;
+  }
+  .stat-title {
+    font-size: 13px;
+  }
+  .stat-caption {
+    font-size: 12px;
+  }
+  .followup-column {
+    display: none;
+  }
+  .patient-top-grid {
+    grid-template-columns: 1fr 1.05fr;
+    gap: 12px;
+  }
+  .card {
+    padding: 14px;
+  }
+  .identity-top h2 {
+    font-size: 21px;
+  }
+  .avatar-large {
+    width: 74px;
+    height: 90px;
+  }
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .identity-top {
+    gap: 13px;
+  }
+  .clinical-grid {
+    gap: 12px;
+  }
+  .chart-tabs button {
+    padding: 5px 6px;
+    font-size: 12px;
+  }
+  .chart-toolbar {
+    gap: 5px;
+  }
+  .metrics-grid {
+    gap: 7px;
+  }
+  .metric-tile {
+    padding: 10px;
+  }
+  .metric-tile strong {
+    font-size: 20px;
+  }
+  .factor {
+    gap: 8px;
+    grid-template-columns: 1.4fr .65fr 1fr;
+  }
+  .prediction-overview {
+    gap: 12px;
+  }
+  .risk-gauge {
+    width: 93px;
+    height: 93px;
+  }
+  .timeline-event {
+    min-width: 135px;
+  }
+  .page-footer {
+    padding-left: 17px;
+    padding-right: 17px;
+  }
+  #toast {
+    left: calc(50% + 98px);
+  }
+}
+@media(max-width:1000px) {
+  .sidebar {
+    width: 75px;
+    padding: 18px 10px 11px;
+  }
+  .brand {
+    margin: 0 0 25px;
+    justify-content: center;
+  }
+  .brand>span:last-child, .workspace, .nav-label, .nav-item>span, .sidebar-bottom {
+    display: none;
+  }
+  .nav-item {
+    justify-content: center;
+    padding: 10px 8px;
+    margin-bottom: 10px;
+  }
+  .nav-item .icon {
+    width: 21px;
+    height: 21px;
+  }
+  .main-shell {
+    margin-left: 75px;
+  }
+  .topbar {
+    height: 72px;
+  }
+  .content {
+    padding: 19px 17px;
+  }
+  .demo-pill {
+    font-size: 12px;
+  }
+  .page-heading h1 {
+    font-size: 29px;
+  }
+  .date-label {
+    display: none;
+  }
+  .patient-top-grid {
+    grid-template-columns: 1fr 1.05fr;
+  }
+  .clinical-grid {
+    grid-template-columns: 1fr;
+  }
+  .metrics-grid {
+    grid-template-columns: repeat(3,1fr);
+    margin: 13px 0;
+  }
+  .metric-tile {
+    padding: 11px;
+  }
+  .metric-tile>span {
+    font-size: 13px;
+  }
+  .metric-tile strong {
+    font-size: 25px;
+  }
+  .metric-tile small, .metric-tile p {
+    font-size: 12.5px;
+  }
+  .chart-tabs button {
+    font-size: 13px;
+    padding: 6px 13px;
+  }
+  .chart-toolbar {
+    margin-bottom: 11px;
+  }
+  .main-chart {
+    max-height: 260px;
+  }
+  .chart-summary>strong {
+    font-size: 32px;
+  }
+  .notes-layout {
+    gap: 14px;
+  }
+  .contact-grid {
+    margin-bottom: 14px;
+  }
+  .topbar-right {
+    gap: 9px;
+  }
+  #toast {
+    left: calc(50% + 37px);
+  }
+}
+@media(max-width:760px) {
+  .sidebar {
+    width: 62px;
+    padding: 17px 7px;
+  }
+  .brand-symbol {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+  .main-shell {
+    margin-left: 62px;
+  }
+  .topbar {
+    padding: 0 13px;
+    height: 66px;
+  }
+  .topbar-divider, .topbar .demo-pill, .doctor>span:nth-child(2), .doctor>.icon {
+    display: none;
+  }
+  .topbar-right {
+    gap: 5px;
+  }
+  .breadcrumb {
+    font-size: 13px;
+    gap: 7px;
+  }
+  .breadcrumb .icon {
+    width: 10px;
+    height: 10px;
+  }
+  .content {
+    padding: 17px 13px;
+  }
+  .page-heading h1 {
+    font-size: 26px;
+  }
+  .page-heading p {
+    font-size: 14px;
+    max-width: 370px;
+  }
+  .page-heading {
+    margin-bottom: 17px;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .stat-value {
+    font-size: 31px;
+  }
+  .stat-title {
+    font-size: 14px;
+  }
+  .stat-caption {
+    font-size: 12.5px;
+  }
+  .panel-heading {
+    padding: 14px 12px;
+  }
+  .panel-heading p {
+    display: none;
+  }
+  .panel-heading h2 {
+    font-size: 16px;
+  }
+  .export-button {
+    font-size: 0;
+    gap: 0;
+    min-width: 31px;
+    padding: 7px;
+  }
+  .export-button .icon {
+    width: 15px;
+    height: 15px;
+  }
+  .toolbar {
+    padding: 11px 12px;
+    gap: 7px;
+    flex-wrap: wrap;
+  }
+  .search-field {
+    flex-basis: 100%;
+    max-width: none;
+  }
+  .sort-select {
+    flex: 1;
+  }
+  .sort-select select {
+    max-width: none;
+    width: 100%;
+  }
+  .filter-dropdown {
+    margin-left: 0;
+  }
+  .filter-popover {
+    left: 0;
+    right: auto;
+  }
+  .list-tabs {
+    padding: 0 12px;
+  }
+  .patient-table {
+    min-width: 670px;
+  }
+  .patient-table td:first-child, .patient-table th:first-child {
+    padding-left: 12px;
+  }
+  .pagination {
+    padding: 13px 12px;
+    font-size: 12px;
+  }
+  .legend {
+    justify-content: flex-start;
+    gap: 10px;
+    font-size: 12px;
+  }
+  .legend-label {
+    width: 100%;
+  }
+  .legend button {
+    margin-left: auto;
+  }
+  .patient-top-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .identity-top h2 {
+    font-size: 24px;
+  }
+  .identity-top {
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .avatar-large {
+    width: 84px;
+    height: 99px;
+  }
+  .contact-grid {
+    grid-template-columns: 1fr 1.1fr;
+    margin-bottom: 14px;
+  }
+  .prediction-overview {
+    gap: 17px;
+  }
+  .risk-gauge {
+    width: 110px;
+    height: 110px;
+  }
+  .prediction-overview h3 {
+    font-size: 16px;
+  }
+  .prediction-overview p {
+    font-size: 13px;
+  }
+  .prediction-card .section-heading h2 {
+    font-size: 18px;
+  }
+  .factors-heading h3 {
+    font-size: 13px;
+  }
+  .factor>span {
+    font-size: 13px;
+  }
+  .factor>strong {
+    font-size: 12.5px;
+  }
+  .factor {
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 12px;
+  }
+  .factor-caption {
+    font-size: 12px;
+  }
+  .subtle-label {
+    display: none;
+  }
+  .timeline-event {
+    min-width: 155px;
+  }
+  .event-date {
+    font-size: 12.5px;
+  }
+  .timeline-event strong {
+    font-size: 13px;
+  }
+  .event-type {
+    font-size: 12px;
+  }
+  .timeline-card {
+    padding-right: 0;
+  }
+  .timeline-card .section-heading {
+    padding-right: 14px;
+  }
+  .notes-layout {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .notes-card .section-heading {
+    align-items: flex-start;
+  }
+  .local-label {
+    font-size: 12px;
+    max-width: 115px;
+    line-height: 1.5;
+  }
+  .clinical-note>p {
+    font-size: 14px;
+  }
+  .note-header strong {
+    font-size: 13px;
+  }
+  .note-header time {
+    font-size: 12px;
+  }
+  .note-editor textarea {
+    font-size: 14.5px;
+  }
+  .note-editor>label {
+    font-size: 14.5px;
+  }
+  .notes-card {
+    margin-bottom: 0;
+  }
+  .patient-page-heading {
+    align-items: flex-start;
+  }
+  .patient-page-heading h1 {
+    font-size: 25px;
+  }
+  .patient-page-heading>.button {
+    font-size: 0;
+    padding: 8px;
+    min-width: 35px;
+  }
+  .patient-page-heading>.button .icon {
+    width: 17px;
+    height: 17px;
+  }
+  .page-footer {
+    padding: 0 13px 14px;
+    font-size: 12px;
+    gap: 12px;
+  }
+  .page-footer>span:last-child {
+    display: none;
+  }
+  #toast {
+    left: calc(50% + 31px);
+    font-size: 14px;
+    max-width: calc(100vw - 90px);
+    width: max-content;
+  }
+  .section-heading p {
+    font-size: 13px;
+  }
+  .metrics-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .metric-tile {
+    padding: 13px;
+  }
+  .metric-tile strong {
+    font-size: 24px;
+  }
+}
+@media(max-width:430px) {
+  .content {
+    padding: 14px 13px;
+  }
+  .topbar {
+    padding: 0 13px;
+  }
+  .page-heading h1 {
+    font-size: 24px;
+  }
+  .page-heading p {
+    font-size: 13px;
+  }
+  .stat-card {
+    padding: 12px;
+  }
+  .stat-icon {
+    width: 26px;
+    height: 26px;
+  }
+  .stat-title {
+    font-size: 13px;
+  }
+  .stat-caption {
+    font-size: 12px;
+  }
+  .stat-value {
+    font-size: 30px;
+  }
+  .card {
+    padding: 12px;
+  }
+  .identity-top h2 {
+    font-size: 20px;
+  }
+  .identity-top {
+    gap: 13px;
+  }
+  .avatar-large {
+    width: 66px;
+    height: 85px;
+  }
+  .identity-top .eyebrow {
+    font-size: 12px;
+  }
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+  .prediction-overview {
+    gap: 10px;
+  }
+  .risk-gauge {
+    width: 95px;
+    height: 95px;
+  }
+  .factor {
+    grid-template-columns: 1.5fr .6fr 1fr;
+    gap: 8px;
+  }
+  .factor>span {
+    font-size: 12.5px;
+  }
+  .factor>strong {
+    font-size: 12px;
+  }
+  .chart-tabs button {
+    font-size: 12px;
+    padding: 6px 7px;
+  }
+  .chart-toolbar {
+    gap: 5px;
+  }
+  .section-heading h2 {
+    font-size: 15px;
+  }
+  .metrics-card .section-heading p {
+    font-size: 12.5px;
+  }
+  .metric-tile>span {
+    font-size: 12px;
+  }
+  .metric-tile small, .metric-tile p {
+    font-size: 12px;
+  }
+  .metric-tile strong {
+    font-size: 22px;
+  }
+  .chart-change {
+    font-size: 12px;
+  }
+  .chart-change small {
+    display: none;
+  }
+  .pagination {
+    padding: 12px;
+  }
+  .pagination>span {
+    max-width: 125px;
+  }
+  .local-label {
+    display: none;
+  }
+  .filter-popover {
+    width: 255px;
+  }
+  .lab-table th, .lab-table td {
+    padding: 10px 5px;
+  }
+  .modal-heading h2 {
+    font-size: 18px;
+  }
+  .identity-footer {
+    font-size: 12px;
+  }
+  .patient-page-heading h1 {
+    font-size: 22px;
+  }
+  .chart-legend {
+    font-size: 12px;
+  }
+  .chart-source {
+    font-size: 12px;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto!important;
+    transition: none!important;
+    animation: none!important;
+  }
+}

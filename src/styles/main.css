@@ -1,0 +1,12 @@
+/* Hoja de estilos principal de Cardia.
+   El orden de los @import reproduce la cascada original: añade los archivos nuevos al final. */
+@import url("./01-base.css");
+@import url("./02-layout.css");
+@import url("./03-summary-cards.css");
+@import url("./04-controls.css");
+@import url("./05-patient-list.css");
+@import url("./06-patient-detail.css");
+@import url("./07-dialogs.css");
+@import url("./08-responsive.css");
+@import url("./09-clinical-summary.css");
+@import url("./10-refinements.css");

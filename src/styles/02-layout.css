@@ -1,0 +1,354 @@
+/* Estructura: barra lateral, barra superior y cabecera de página.
+   Se carga en el orden indicado en main.css: no cambies el orden de los archivos. */
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 224px;
+  padding: 22px 13px 13px;
+  background: #fff;
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 13px 27px;
+  font-size: 35px;
+  font-weight: 700;
+  letter-spacing: -1.9px;
+}
+.brand-symbol {
+  display: grid;
+  place-items: center;
+  background: var(--teal);
+  color: #5a6c6c;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+}
+.brand-symbol .icon {
+  width: 27px;
+  height: 27px;
+  stroke-width: 1.8;
+}
+.brand-dot {
+  color: var(--teal);
+}
+.workspace {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8faf9;
+  border: 1px solid #eaf0ee;
+  border-radius: 9px;
+  padding: 12px 10px;
+  margin-bottom: 23px;
+}
+.workspace-icon {
+  color: #59756e;
+}
+.workspace strong {
+  font-size: 14px;
+  font-weight: 600;
+  display: block;
+}
+.workspace small {
+  display: block;
+  font-size: 13px;
+  color: #5d6f6c;
+  margin-top: 2px;
+}
+.online-dot, .tiny-dot {
+  width: 6px;
+  height: 6px;
+  background: #69a48e;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.online-dot {
+  margin-left: auto;
+}
+.nav-label {
+  font-size: 12.5px;
+  font-weight: 650;
+  color: #607170;
+  letter-spacing: 1.1px;
+  margin: 0 13px 12px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  gap: 11px;
+  width: 100%;
+  padding: 12px 13px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #61726e;
+  transition: background .16s;
+}
+.nav-item .icon {
+  width: 18px;
+  height: 18px;
+}
+.nav-item:hover {
+  background: #f3f7f5;
+}
+.nav-item.active {
+  background: #e9f4f0;
+  color: var(--teal-dark);
+  font-weight: 650;
+}
+.nav-count, .priority-count {
+  font-size: 13px;
+  border-radius: 5px;
+  padding: 1px 5px;
+  margin-left: auto;
+  background: #dcece5;
+  color: #447369;
+}
+.priority-count {
+  background: #fff0eb;
+  color: #916458;
+}
+.sidebar-bottom {
+  margin-top: auto;
+  padding-top: 29px;
+}
+.demo-card {
+  border: 1px solid #e7eeeb;
+  border-radius: 11px;
+  background: linear-gradient(135deg,#f5f9f6,#fbfcfa);
+  padding: 12px 11px;
+}
+.demo-card-icon {
+  display: flex;
+  color: #51766f;
+  margin-bottom: 11px;
+}
+.demo-card strong {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.demo-card p {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #5f726d;
+  margin-top: 7px;
+}
+.demo-card button {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 12px;
+  color: #3f7769;
+}
+.demo-card button .icon {
+  width: 15px;
+  height: 15px;
+}
+.sidebar-footer {
+  font-size: 12px;
+  color: #5e6f6c;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  white-space: nowrap;
+}
+.sidebar-footer>span:last-child {
+  margin-left: auto;
+  color: #5c6e6c;
+}
+.tiny-dot {
+  width: 4px;
+  height: 4px;
+}
+.main-shell {
+  margin-left: 224px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.topbar {
+  height: 81px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+  gap: 14px;
+}
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.breadcrumb>span {
+  color: #5e6e6c;
+}
+.breadcrumb .icon {
+  color: #5f716f;
+  width: 12px;
+  height: 12px;
+}
+.breadcrumb strong {
+  font-weight: 500;
+}
+.breadcrumb a:hover {
+  color: var(--teal);
+}
+.topbar-right {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.demo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #e3eae6;
+  background: #f8faf6;
+  color: #637361;
+  padding: 5px 9px;
+  font-size: 12.5px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+.demo-pill>span {
+  width: 5px;
+  height: 5px;
+  background: #93a879;
+  border-radius: 50%;
+}
+.topbar-divider {
+  height: 25px;
+  width: 1px;
+  background: #e8eeeb;
+}
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  color: #5c706c;
+  border-radius: 7px;
+  padding: 6px;
+}
+.icon-button:hover {
+  background: #eef4f1;
+  color: var(--teal);
+}
+.icon-button.small {
+  width: 27px;
+  height: 27px;
+}
+.icon-button.small .icon {
+  width: 17px;
+  height: 17px;
+}
+.notification {
+  position: relative;
+}
+.notification i {
+  position: absolute;
+  right: 8px;
+  top: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ca816d;
+  box-shadow: 0 0 0 2px white;
+}
+.doctor {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  text-align: left;
+  white-space: nowrap;
+}
+.doctor-avatar, .note-avatar {
+  width: 35px;
+  height: 35px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e2eae5;
+  color: #597167;
+  font-size: 14px;
+  font-weight: 600;
+  border: 3px solid #f2f6f3;
+}
+.doctor strong {
+  font-size: 13px;
+  font-weight: 600;
+  display: block;
+}
+.doctor small {
+  font-size: 12.5px;
+  color: #5c6e6b;
+  display: block;
+  margin-top: 2px;
+}
+.doctor>.icon {
+  width: 13px;
+  height: 13px;
+  color: #60736e;
+  margin-left: 10px;
+}
+.content {
+  max-width: 1510px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 23px 24px 19px;
+  flex: 1;
+}
+.page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.eyebrow {
+  font-size: 12.5px;
+  letter-spacing: 1.4px;
+  font-weight: 650;
+  color: #60736f;
+  margin-bottom: 9px;
+}
+.page-heading p {
+  color: #60716d;
+  font-size: 14.5px;
+  margin-top: 8px;
+}
+.date-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #61736f;
+  font-size: 13px;
+  white-space: nowrap;
+  align-self: flex-end;
+  padding-bottom: 3px;
+}
+.date-label .icon {
+  width: 14px;
+  height: 14px;
+}

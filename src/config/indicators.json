@@ -8,7 +8,22 @@
       "shortLabel": "PA sistólica",
       "unit": "mmHg",
       "decimals": 0,
-      "kind": "vital"
+      "kind": "vital",
+      "better": "lower",
+      "bands": [
+        {
+          "from": 0,
+          "tone": "green"
+        },
+        {
+          "from": 130,
+          "tone": "yellow"
+        },
+        {
+          "from": 140,
+          "tone": "red"
+        }
+      ]
     },
     {
       "field": "diastolic",
@@ -16,7 +31,22 @@
       "shortLabel": "PA diastólica",
       "unit": "mmHg",
       "decimals": 0,
-      "kind": "vital"
+      "kind": "vital",
+      "better": "lower",
+      "bands": [
+        {
+          "from": 0,
+          "tone": "green"
+        },
+        {
+          "from": 80,
+          "tone": "yellow"
+        },
+        {
+          "from": 90,
+          "tone": "red"
+        }
+      ]
     },
     {
       "field": "total_cholesterol",
@@ -24,7 +54,22 @@
       "shortLabel": "Colesterol total",
       "unit": "mg/dL",
       "decimals": 0,
-      "kind": "lab"
+      "kind": "lab",
+      "better": "lower",
+      "bands": [
+        {
+          "from": 0,
+          "tone": "green"
+        },
+        {
+          "from": 200,
+          "tone": "yellow"
+        },
+        {
+          "from": 240,
+          "tone": "red"
+        }
+      ]
     },
     {
       "field": "hdl_cholesterol",
@@ -32,7 +77,18 @@
       "shortLabel": "Colesterol HDL",
       "unit": "mg/dL",
       "decimals": 0,
-      "kind": "lab"
+      "kind": "lab",
+      "better": "higher",
+      "bands": [
+        {
+          "from": 0,
+          "tone": "red"
+        },
+        {
+          "from": 40,
+          "tone": "green"
+        }
+      ]
     },
     {
       "field": "hba1c",
@@ -40,7 +96,22 @@
       "shortLabel": "HbA1c",
       "unit": "%",
       "decimals": 1,
-      "kind": "lab"
+      "kind": "lab",
+      "better": "lower",
+      "bands": [
+        {
+          "from": 0,
+          "tone": "green"
+        },
+        {
+          "from": 7,
+          "tone": "yellow"
+        },
+        {
+          "from": 8,
+          "tone": "red"
+        }
+      ]
     },
     {
       "field": "acr",
@@ -48,7 +119,22 @@
       "shortLabel": "ACR",
       "unit": "mg/g",
       "decimals": 0,
-      "kind": "lab"
+      "kind": "lab",
+      "better": "lower",
+      "bands": [
+        {
+          "from": 0,
+          "tone": "green"
+        },
+        {
+          "from": 30,
+          "tone": "yellow"
+        },
+        {
+          "from": 300,
+          "tone": "red"
+        }
+      ]
     },
     {
       "field": "serum_creatinine",
@@ -56,7 +142,22 @@
       "shortLabel": "Creatinina",
       "unit": "mg/dL",
       "decimals": 2,
-      "kind": "lab"
+      "kind": "lab",
+      "better": "lower",
+      "bands": [
+        {
+          "from": 0,
+          "tone": "green"
+        },
+        {
+          "from": 1.2,
+          "tone": "yellow"
+        },
+        {
+          "from": 1.5,
+          "tone": "red"
+        }
+      ]
     },
     {
       "field": "egfr",
@@ -64,7 +165,26 @@
       "shortLabel": "eGFR",
       "unit": "mL/min/1,73 m²",
       "decimals": 0,
-      "kind": "lab"
+      "kind": "lab",
+      "better": "higher",
+      "bands": [
+        {
+          "from": 0,
+          "tone": "red"
+        },
+        {
+          "from": 30,
+          "tone": "orange"
+        },
+        {
+          "from": 45,
+          "tone": "yellow"
+        },
+        {
+          "from": 60,
+          "tone": "green"
+        }
+      ]
     }
   ],
   "overviewFields": [
@@ -77,5 +197,6 @@
   "kdigoFields": {
     "egfr": "egfr",
     "acr": "acr"
-  }
+  },
+  "bandsNote": "Umbrales ilustrativos para colorear valores, pendientes de validación clínica. Cada banda se aplica desde su valor \"from\". better indica si un valor más bajo o más alto es favorable."
 }

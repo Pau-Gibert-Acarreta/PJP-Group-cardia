@@ -100,10 +100,10 @@ La tabla muestra la combinación G/A de las últimas mediciones válidas de eGFR
 
 ## Código de integración futura
 
-- `src/demo-measurements.js`: genera los historiales ficticios actuales.
-- `src/data.js`: construye los pacientes de demostración.
-- `src/clinical.js`: normaliza historiales, calcula cambios y evalúa las reglas.
-- `src/clinical-ui.js`: presenta resumen, indicadores y hallazgos.
+- `src/data/demo/measurements.js`: genera los historiales ficticios actuales.
+- `src/data/demo/patients.js`: construye los pacientes de demostración.
+- `src/services/patient-service.js` y `src/services/notes-service.js`: única puerta de entrada a los datos para la interfaz. Aquí se sustituirán los datos de demostración por llamadas al backend (`src/services/api-client.js`).
+- `src/domain/`: normaliza historiales (`measurements.js`), calcula cambios, evalúa las reglas (`findings.js`) y las categorías KDIGO (`kdigo.js`).
+- `src/ui/components/`: presenta resumen, indicadores y hallazgos.
 
-La integración futura deberá sustituir la entrega de datos de demostración por pacientes con el mismo contrato. La lógica clínica de presentación no necesita conocer cómo se consulta la base de datos. La normalización de nombres, tipos y unidades debe realizarse en ese adaptador, antes de evaluar las reglas.
-
+La integración futura deberá sustituir la entrega de datos de demostración por pacientes con el mismo contrato. La lógica clínica de presentación no necesita conocer cómo se consulta la base de datos. La normalización de nombres, tipos y unidades debe realizarse en ese adaptador, antes de evaluar las reglas. Consulta [arquitectura.md](arquitectura.md) para ver la estructura completa.

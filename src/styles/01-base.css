@@ -1,0 +1,95 @@
+/* Variables, reset, tipografía y utilidades generales.
+   Se carga en el orden indicado en main.css: no cambies el orden de los archivos. */
+
+:root {
+  font-family: "DM Sans","Segoe UI",sans-serif;
+  color: #233b3b;
+  background: #f6f8f8;
+  font-synthesis: none;
+  --teal: #087c76;
+  --teal-dark: #135650;
+  --muted: #7c8b8b;
+  --line: #e8eeee;
+  --red: #cd605b;
+  --yellow: #c09229;
+  --green: #3a9676;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+button, input, select, textarea {
+  font: inherit;
+}
+button, a, input, select, textarea, summary {
+  -webkit-tap-highlight-color: transparent;
+}
+button, a, summary {
+  touch-action: manipulation;
+}
+button {
+  cursor: pointer;
+  color: inherit;
+}
+button {
+  background: none;
+  border: 0;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button:disabled {
+  cursor: default;
+  opacity: .35;
+}
+button, summary, a, input, select, textarea {
+  outline-offset: 4px;
+}
+button:focus-visible, summary:focus-visible, a:focus-visible {
+  outline: 2px solid var(--teal);
+}
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid #8dc6be;
+  outline-offset: 1px;
+}
+h1, h2, h3, p {
+  margin: 0;
+}
+h1 {
+  font-size: 32px;
+  letter-spacing: -1.05px;
+  line-height: 1.3;
+  font-weight: 650;
+}
+h2 {
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -.35px;
+}
+h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+.icon {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -19,7 +19,8 @@ En Windows, si el repositorio está en una ruta UNC de WSL, ejecuta directamente
 - [Indicadores y columnas](src/config/indicators.json): nombres, claves de datos, unidades, decimales, orden de las filas y columnas del resumen.
 - [Reglas de hallazgos](src/config/finding-rules.json): añade, modifica o desactiva alertas sin editar el frontend.
 - [Contrato de datos y configuración](docs/data-contract.md): estructura de las mediciones y ejemplos de reglas.
-- [Datos ficticios](src/demo-measurements.js): historiales de ejemplo, incluidos cambios relevantes y datos incompletos.
+- [Datos ficticios](src/data/demo/): pacientes e historiales de ejemplo, incluidos cambios relevantes y datos incompletos.
+- [Arquitectura del frontend](docs/arquitectura.md): qué hay en cada carpeta, cómo fluye la información y cómo conectar el backend.
 
 Las claves técnicas son provisionales porque todavía no se ha facilitado el esquema de la base de datos. El campo `field` de un indicador y de una regla identifica la misma variable dentro de `patient.measurements`. Cuando exista ese esquema, el adaptador de datos deberá entregar esas claves o se deberán actualizar los JSON. No hay ninguna conexión a una base de datos ni a un modelo de ML.
 

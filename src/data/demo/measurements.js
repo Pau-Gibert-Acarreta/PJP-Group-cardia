@@ -1,4 +1,5 @@
-// Única capa de datos de ejemplo. Sustituible por un adaptador, sin cambiar las vistas.
+// Historial de mediciones ficticio de cada paciente (formato normalizado: [{ value, date }]).
+// Incluye casos de prueba: cambios relevantes, estabilidad y datos incompletos.
 export function makeDemoMeasurements(patient, index) {
   const m = patient.metrics;
   const dates = ['2025-12-12', '2026-02-12', '2026-04-16', '2026-06-18', '2026-08-07', patient.lastTest];
