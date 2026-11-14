@@ -1,6 +1,6 @@
 # Contrato de datos e indicadores
 
-Esta es una preparación del frontend. No se ha implementado una base de datos, una API ni un cliente de machine learning.
+El Core Backend API (`backend/`) entrega los pacientes con este contrato. El riesgo de ML aún no existe y se simula en el frontend.
 
 ## Entrada de mediciones
 

@@ -27,7 +27,8 @@ def main(argv: list[str]) -> int:
         conn.execute("SET search_path = cardia, public")
         stats = findings_service.refresh(conn, config, ids)
     print(f"Reglas {config.rules_version}: {stats.patients} pacientes, {stats.created} hallazgos nuevos, "
-          f"{stats.resolved} cerrados, {stats.active} activos ({time.perf_counter() - start:.1f} s)")
+          f"{stats.resolved} cerrados, {stats.relabeled} actualizados, {stats.active} activos "
+          f"({time.perf_counter() - start:.1f} s)")
     return 0
 
 

@@ -23,6 +23,7 @@ class RefreshStats:
     created: int = 0
     resolved: int = 0
     active: int = 0
+    relabeled: int = 0   # activos cuyo título o gravedad se actualizó por un cambio en las reglas
 
 
 def _load_points(conn: Connection, fields: list[str], patient_ids: list[int] | None):
@@ -56,6 +57,7 @@ def refresh(conn: Connection, config: ClinicalConfig, patient_ids: list[int] | N
 
     to_resolve: list[tuple] = []
     to_insert: list[dict] = []
+    to_relabel: list[tuple] = []
     keep: set[tuple] = set()
     stats = RefreshStats(patients=len(patient_ids))
 
@@ -65,6 +67,11 @@ def refresh(conn: Connection, config: ClinicalConfig, patient_ids: list[int] | N
             current = active.get(key)
             s = f.summary
             if current and current["current_at"] == s.latest.at and current["previous_at"] == s.previous.at:
+                # Mismo hallazgo. Si la regla cambió de título o gravedad, se actualiza en el sitio.
+                if (current["title"], current["severity"], current["rules_version"]) != (
+                        f.rule["title"], f.rule["severity"], config.rules_version):
+                    to_relabel.append((f.rule["title"], f.rule["severity"], config.rules_version,
+                                       current["finding_id"]))
                 keep.add(key)
                 continue
             if current:
@@ -83,6 +90,9 @@ def refresh(conn: Connection, config: ClinicalConfig, patient_ids: list[int] | N
     with conn.cursor() as cur:
         if to_resolve:
             cur.executemany("UPDATE finding SET resolved_at = now() WHERE finding_id = %s", to_resolve)
+        if to_relabel:
+            cur.executemany("UPDATE finding SET title = %s, severity = %s, rules_version = %s "
+                            "WHERE finding_id = %s", to_relabel)
         if to_insert:
             cur.executemany("""
                 INSERT INTO finding (patient_id, rule_id, rules_version, indicator_code, severity, title,
@@ -92,6 +102,7 @@ def refresh(conn: Connection, config: ClinicalConfig, patient_ids: list[int] | N
             """, to_insert)
 
     stats.created, stats.resolved, stats.active = len(to_insert), len(to_resolve), len(keep)
+    stats.relabeled = len(to_relabel)
     return stats
 
 

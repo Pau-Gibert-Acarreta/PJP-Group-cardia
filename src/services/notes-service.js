@@ -1,23 +1,18 @@
-// Notas de consulta.
-//
-// HOY: notas de ejemplo de cada paciente + notas nuevas guardadas en localStorage.
-// MAÑANA (backend): leer y guardar con api-client.js (api.getNotes / api.createNote / api.updateNote).
-import { readStorage, saveStorage, STORAGE_KEYS } from './storage.js';
+// Notas de consulta, guardadas en el servidor (Core Backend API).
+import { api } from './api-client.js';
 
-const storedNotes = readStorage(STORAGE_KEYS.notes, {});
-const savedNotes = storedNotes && typeof storedNotes === 'object' && !Array.isArray(storedNotes) ? storedNotes : {};
-
-// Notas del paciente, de la más reciente a la más antigua.
+// Notas del paciente, de la más reciente a la más antigua (llegan con la ficha).
 export function notesFor(p) {
-  return [...(Array.isArray(savedNotes[p.id]) ? savedNotes[p.id].filter(n => n && typeof n.text === 'string' && typeof n.id === 'string' && typeof n.date === 'string') : []), ...p.notes]
-    .sort((a, b) => b.date.localeCompare(a.date));
+  return [...(p.notes ?? [])].sort((a, b) => b.date.localeCompare(a.date));
 }
 
-// Crea una nota nueva o actualiza la que se está editando. Devuelve si se ha podido guardar.
-export function saveNote(patientId, text, editingId) {
-  const list = Array.isArray(savedNotes[patientId]) ? savedNotes[patientId] : [];
-  if (editingId) { const note = list.find(n => n.id === editingId); if (note) { note.text = text; note.date = new Date().toISOString(); } }
-  else list.unshift({ id: crypto.randomUUID(), text, author: 'Dra. Carmen Vidal', date: new Date().toISOString() });
-  savedNotes[patientId] = list;
-  return saveStorage(STORAGE_KEYS.notes, savedNotes);
+// Crea una nota nueva o actualiza la que se está editando. Lanza un error si el servidor no la guarda.
+export async function saveNote(p, text, editingId) {
+  if (editingId) {
+    const updated = await api.updateNote(p.id, editingId, text);
+    p.notes = (p.notes ?? []).map(n => (n.id === editingId ? updated : n));
+  } else {
+    const created = await api.createNote(p.id, text);
+    p.notes = [created, ...(p.notes ?? [])];
+  }
 }

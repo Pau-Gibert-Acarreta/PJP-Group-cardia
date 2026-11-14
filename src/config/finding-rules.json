@@ -1,100 +1,128 @@
 {
-  "version": 1,
-  "description": "Reglas ilustrativas de demostración, pendientes de validación clínica. Se aplican a las dos últimas mediciones válidas del mismo campo y unidad.",
+  "version": 2,
+  "description": "Reglas basadas en guías clínicas. Ver referencias en docs/finding-rules.md.",
   "rules": [
     {
-      "id": "systolic-rise",
+      "id": "presion-sistolica-grado-3",
       "enabled": true,
       "field": "systolic",
-      "title": "Aumento de PA sistólica",
+      "title": "Presión sistólica de grado 3",
       "severity": "warning",
-      "maxIntervalDays": 180,
       "conditions": [
-        {
-          "metric": "delta",
-          "operator": "gte",
-          "value": 15
-        }
+        {"metric": "current", "operator": "gte", "value": 180}
       ]
     },
     {
-      "id": "diastolic-rise",
+      "id": "presion-diastolica-grado-3",
       "enabled": true,
       "field": "diastolic",
-      "title": "Aumento de PA diastólica",
-      "severity": "attention",
-      "maxIntervalDays": 180,
+      "title": "Presión diastólica de grado 3",
+      "severity": "warning",
       "conditions": [
-        {
-          "metric": "delta",
-          "operator": "gte",
-          "value": 10
-        }
+        {"metric": "current", "operator": "gte", "value": 110}
       ]
     },
     {
-      "id": "hba1c-rise",
+      "id": "colesterol-total-extremo",
+      "enabled": true,
+      "field": "total_cholesterol",
+      "title": "Colesterol total extremadamente elevado",
+      "severity": "warning",
+      "conditions": [
+        {"metric": "current", "operator": "gte", "value": 310}
+      ]
+    },
+    {
+      "id": "hdl-bajo",
+      "enabled": true,
+      "field": "hdl_cholesterol",
+      "title": "HDL bajo",
+      "severity": "attention",
+      "conditions": [
+        {"metric": "current", "operator": "lt", "value": 40}
+      ]
+    },
+    {
+      "id": "hba1c-rango-diabetico",
       "enabled": true,
       "field": "hba1c",
-      "title": "Aumento de HbA1c",
+      "title": "HbA1c en rango diagnóstico de diabetes",
       "severity": "attention",
-      "maxIntervalDays": 180,
       "conditions": [
-        {
-          "metric": "delta",
-          "operator": "gte",
-          "value": 0.5
-        }
+        {"metric": "current", "operator": "gte", "value": 6.5}
       ]
     },
     {
-      "id": "acr-rise",
+      "id": "hba1c-hiperglucemia-severa",
+      "enabled": true,
+      "field": "hba1c",
+      "title": "Hiperglucemia marcada",
+      "severity": "warning",
+      "conditions": [
+        {"metric": "current", "operator": "gt", "value": 10}
+      ]
+    },
+    {
+      "id": "acr-albuminuria-a3",
       "enabled": true,
       "field": "acr",
-      "title": "Aumento de albuminuria",
+      "title": "Albuminuria severamente aumentada A3",
       "severity": "warning",
-      "maxIntervalDays": 180,
       "conditions": [
-        {
-          "metric": "percent_change",
-          "operator": "gte",
-          "value": 50
-        },
-        {
-          "metric": "delta",
-          "operator": "gte",
-          "value": 10
-        }
+        {"metric": "current", "operator": "gt", "value": 300}
       ]
     },
     {
-      "id": "egfr-fall",
+      "id": "acr-duplicacion",
+      "enabled": true,
+      "field": "acr",
+      "title": "Duplicación del cociente albúmina/creatinina",
+      "severity": "warning",
+      "conditions": [
+        {"metric": "current", "operator": "gte", "value": 30},
+        {"metric": "percent_change", "operator": "gte", "value": 100}
+      ]
+    },
+    {
+      "id": "egfr-descenso-significativo",
       "enabled": true,
       "field": "egfr",
-      "title": "Descenso de eGFR",
+      "title": "Descenso significativo del filtrado glomerular",
       "severity": "warning",
-      "maxIntervalDays": 180,
       "conditions": [
-        {
-          "metric": "percent_change",
-          "operator": "lte",
-          "value": -20
-        }
+        {"metric": "percent_change", "operator": "lt", "value": -20}
       ]
     },
     {
-      "id": "creatinine-rise",
+      "id": "egfr-menor-30",
+      "enabled": true,
+      "field": "egfr",
+      "title": "Filtrado glomerular gravemente reducido",
+      "severity": "warning",
+      "conditions": [
+        {"metric": "current", "operator": "lt", "value": 30}
+      ]
+    },
+    {
+      "id": "aki-creatinina-048h",
       "enabled": true,
       "field": "serum_creatinine",
-      "title": "Aumento de creatinina",
-      "severity": "attention",
-      "maxIntervalDays": 180,
+      "title": "Posible lesión renal aguda: aumento de creatinina en 48 horas",
+      "severity": "warning",
+      "maxIntervalDays": 2,
       "conditions": [
-        {
-          "metric": "delta",
-          "operator": "gte",
-          "value": 0.3
-        }
+        {"metric": "delta", "operator": "gte", "value": 0.3}
+      ]
+    },
+    {
+      "id": "aki-creatinina-150-7dias",
+      "enabled": true,
+      "field": "serum_creatinine",
+      "title": "Posible lesión renal aguda: aumento del 50% en 7 días",
+      "severity": "warning",
+      "maxIntervalDays": 7,
+      "conditions": [
+        {"metric": "percent_change", "operator": "gte", "value": 50}
       ]
     }
   ]

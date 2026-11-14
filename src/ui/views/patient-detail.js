@@ -72,7 +72,7 @@ function chartCard(p) {
   return '<section class="card chart-card"><div class="section-heading"><div><h2>Evolución de indicadores</h2><p>Una perspectiva de los cambios en el tiempo.</p></div>' +
     '<button class="icon-button small" data-action="expand-chart" aria-label="Ampliar gráfica">' + icon('expand') + '</button></div>' +
     '<div class="chart-toolbar"><div class="chart-picker-slot">' + chartPicker(p, state) + '</div>' +
-    '<label class="period-select"><select id="chart-period" aria-label="Periodo de la gráfica"><option value="6" ' + (state.period === '6' ? 'selected' : '') + '>6 meses</option><option value="12" ' + (state.period === '12' ? 'selected' : '') + '>12 meses</option></select>' + icon('down') + '</label></div>' +
+    '<label class="period-select"><select id="chart-period" aria-label="Periodo de la gráfica"><option value="6" ' + (state.period === '6' ? 'selected' : '') + '>6 meses</option><option value="12" ' + (state.period === '12' ? 'selected' : '') + '>12 meses</option><option value="all" ' + (state.period === 'all' ? 'selected' : '') + '>Todo el historial</option></select>' + icon('down') + '</label></div>' +
     '<div id="chart-content">' + chart(p, state) + '</div></section>';
 }
 
@@ -93,7 +93,7 @@ function notesCard(p) {
     '<button class="button primary" type="submit">' + icon('plus') + (state.noteEditing ? 'Guardar cambios' : 'Guardar nota') + '</button></div>' +
     '<small class="privacy-hint">Usa únicamente información ficticia en esta demo.</small></form>';
   return '<section class="card notes-card" id="clinical-notes"><div class="section-heading"><div><h2>' + icon('note') + ' Notas de consulta <span class="count-pill">' + notes.length + '</span></h2><p>Tu contexto clínico también forma parte de la historia.</p></div>' +
-    '<span class="local-label">' + icon('shield') + ' Guardadas en este navegador</span></div>' +
+    '<span class="local-label">' + icon('shield') + ' Guardadas en la historia clínica</span></div>' +
     '<div class="notes-layout"><div class="notes-list">' + list + '</div>' + editor + '</div></section>';
 }
 

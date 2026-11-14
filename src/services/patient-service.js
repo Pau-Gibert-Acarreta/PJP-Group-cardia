@@ -1,24 +1,50 @@
-// Acceso a los pacientes. Las vistas solo hablan con este servicio, nunca con los datos directamente.
+// Acceso a los pacientes. Las vistas solo hablan con este servicio, nunca con la API directamente.
 //
-// HOY: pacientes de demostración en memoria + seguimiento guardado en localStorage.
-// MAÑANA (backend): sustituir el contenido de estas funciones por llamadas a api-client.js
-// (por ejemplo, cargar la lista en loadPatients() y llamar a api.setFollowup en toggleFollowup()).
-import { demoPatients } from '../data/demo/patients.js';
-import { readStorage, saveStorage, STORAGE_KEYS } from './storage.js';
+// Datos del Core Backend API (base de datos): identidad, contacto, antecedentes, mediciones,
+// línea temporal, notas y seguimiento. El riesgo de ML sigue simulado (data/demo/simulated-risk.js).
+import { api } from './api-client.js';
+import { toPatient, mergeDetail } from './patient-adapter.js';
 
-const patients = demoPatients;
+let patients = [];
+let byId = new Map();
+const detailRequests = new Map();
 
-const storedFollowups = readStorage(STORAGE_KEYS.followups, {});
-patients.forEach(p => { if (typeof storedFollowups?.[p.id] === 'boolean') p.followup = storedFollowups[p.id]; });
+// Carga el cupo completo. Se llama una vez al arrancar (bootstrap.js).
+export async function loadPatients() {
+  const { items } = await api.getPatients();
+  patients = items.map(toPatient);
+  byId = new Map(patients.map(p => [p.id, p]));
+  detailRequests.clear();
+  return patients;
+}
 
 export const getPatients = () => patients;
 
-export const findPatient = id => patients.find(p => p.id === id);
+export const findPatient = id => byId.get(id);
 
-// Marca o desmarca el seguimiento. Devuelve el paciente y si el cambio se ha podido guardar.
-export function toggleFollowup(id) {
+// Completa el paciente con su ficha (contacto, eventos, notas). Una sola petición aunque se pida varias veces.
+export function loadPatientDetail(id) {
+  const patient = byId.get(id);
+  if (!patient) return Promise.resolve(null);
+  if (patient.detailLoaded) return Promise.resolve(patient);
+  if (!detailRequests.has(id)) {
+    detailRequests.set(id, api.getPatient(id)
+      .then(detail => mergeDetail(patient, detail))
+      .finally(() => detailRequests.delete(id)));
+  }
+  return detailRequests.get(id);
+}
+
+// Marca o desmarca el seguimiento en el servidor. Si falla, se deshace el cambio y se lanza el error.
+export async function toggleFollowup(id) {
   const patient = findPatient(id);
-  patient.followup = !patient.followup;
-  const persisted = saveStorage(STORAGE_KEYS.followups, Object.fromEntries(patients.map(p => [p.id, p.followup])));
-  return { patient, persisted };
+  const next = !patient.followup;
+  patient.followup = next;
+  try {
+    await api.setFollowup(id, next);
+  } catch (error) {
+    patient.followup = !next;
+    throw error;
+  }
+  return patient;
 }
