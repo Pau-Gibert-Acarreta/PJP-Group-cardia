@@ -1,9 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { patients } from '../src/data.js';
-import { validateClinicalConfig, loadClinicalConfig, getSeries, summarizeIndicator, getIndicatorRows, evaluateFindings, kdigoCategory, patientKdigo } from '../src/clinical.js';
-import { indicatorTrend, overviewHeader, overviewRow, renderIndicators, renderFindings } from '../src/clinical-ui.js';
+import { demoPatients as patients } from '../src/data/demo/patients.js';
+import { validateClinicalConfig } from '../src/domain/clinical-config.js';
+import { loadClinicalConfig } from '../src/services/config-service.js';
+import { getSeries, summarizeIndicator, getIndicatorRows } from '../src/domain/measurements.js';
+import { evaluateFindings } from '../src/domain/findings.js';
+import { kdigoCategory, patientKdigo } from '../src/domain/kdigo.js';
+import { overviewHeader, overviewRow } from '../src/ui/components/overview-table.js';
+import { indicatorTrend, renderIndicators } from '../src/ui/components/key-indicators.js';
+import { renderFindings } from '../src/ui/components/findings-card.js';
 const readJSON = file => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8').replace(/^\uFEFF/, ''));
 const config = readJSON('../src/config/indicators.json');
 const rules = readJSON('../src/config/finding-rules.json');
@@ -174,7 +180,7 @@ test('carga de JSON local con errores explícitos, sin dependencia de una BD', a
 
 
 test('la gráfica ampliable utiliza las mismas mediciones y fechas reales', async () => {
-  const { chartData, chart } = await import('../src/charts.js');
+  const { chartData, chart } = await import('../src/ui/components/chart.js');
   const data = chartData(patients[0], { chart: 'pressure', period: '6' });
   assert.equal(data.values.at(-1), patients[0].metrics.systolic);
   assert.equal(data.values.at(-2), 128);

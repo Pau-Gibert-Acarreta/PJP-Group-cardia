@@ -1,0 +1,81 @@
+/* Paneles, tarjetas genéricas y botones.
+   Se carga en el orden indicado en main.css: no cambies el orden de los archivos. */
+
+.patient-panel, .card {
+  background: #fff;
+  border: 1px solid #e4ece7;
+  border-radius: 12px;
+  box-shadow: 0 3px 7px #123c2a02;
+}
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 11px;
+  padding: 17px 17px 15px;
+}
+.panel-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panel-heading p, .section-heading p {
+  font-size: 13px;
+  color: #61736e;
+  margin-top: 4px;
+}
+.count-pill {
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 2px 7px;
+  line-height: 1.5;
+  min-width: 21px;
+  text-align: center;
+  background: #edf3ef;
+  border: 1px solid #e2ebe4;
+  border-radius: 5px;
+  color: #5b7069;
+  vertical-align: middle;
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  min-height: 35px;
+  white-space: nowrap;
+  transition: background .15s;
+}
+.button .icon {
+  width: 15px;
+  height: 15px;
+}
+.button.secondary {
+  border-color: #e1e8e3;
+  background: white;
+  color: #60736a;
+  box-shadow: 0 1px 2px #123b2b03;
+}
+.button.secondary:hover {
+  background: #f6f9f7;
+  border-color: #becfc3;
+}
+.button.primary {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: white;
+  box-shadow: 0 2px 3px #087c7610;
+}
+.button.primary:hover {
+  background: #066961;
+}
+.button.soft {
+  background: #e9f3ee;
+  color: #407965;
+  border-color: #d9e9df;
+}

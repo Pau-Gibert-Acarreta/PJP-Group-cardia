@@ -1,0 +1,804 @@
+/* Ajustes visuales posteriores: legibilidad, tonos clínicos y textos en negro.
+   Se carga en el orden indicado en main.css: no cambies el orden de los archivos. */
+
+/* Ajustes de legibilidad */
+.risk-gauge {
+  width: 120px;
+  height: 120px;
+}
+.risk-gauge strong {
+  font-size: 25px;
+}
+@media(min-width:1001px) {
+  .findings-list {
+    max-height: 470px;
+  }
+}
+/* Tendencia de eGFR en el listado */
+:root {
+  --orange: #d9772f;
+}
+.egfr-trend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.egfr-trend>strong {
+  font-size: 15px;
+  font-weight: 650;
+  color: #233b3b;
+  font-variant-numeric: tabular-nums;
+  min-width: 24px;
+}
+.egfr-trend svg {
+  width: 72px;
+  height: 26px;
+  flex-shrink: 0;
+  overflow: visible;
+}
+.egfr-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.overview-table th.egfr-trend-head {
+  min-width: 140px;
+}
+.sidebar .brand {
+  margin-bottom: 28px;
+}
+/* Tonos clínicos compartidos */
+.tone-green {
+  --tone: var(--green);
+  --tone-bg: #e7f3ec;
+}
+.tone-yellow {
+  --tone: #b8860b;
+  --tone-bg: #fbf3dc;
+}
+.tone-orange {
+  --tone: var(--orange);
+  --tone-bg: #fcebdc;
+}
+.tone-red {
+  --tone: #c4473f;
+  --tone-bg: #fbe6e4;
+}
+.tone-neutral {
+  --tone: #5d726b;
+  --tone-bg: #eef2f1;
+}
+.egfr-trend {
+  color: var(--tone);
+}
+/* Hallazgos: variación y valores */
+.finding-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13.5px!important;
+  font-weight: 650;
+  padding: 2px 7px!important;
+  border-radius: 5px!important;
+  background: var(--tone-bg)!important;
+  color: var(--tone)!important;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+}
+.finding-delta .icon {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.6;
+}
+.finding-delta small {
+  font-size: 12px;
+  font-weight: 500;
+}
+.delta-flat {
+  font-weight: 700;
+  padding: 0 2px;
+}
+.finding-comparison strong {
+  color: #1f3532!important;
+  font-weight: 600;
+}
+.finding-comparison strong>small {
+  color: #5d726b!important;
+}
+/* Valores destacados en tinta oscura */
+:root {
+  --ink: #1c2f2c;
+}
+.overview-numeric, .overview-table .overview-numeric {
+  color: var(--ink)!important;
+  font-weight: 600;
+}
+.stat-value {
+  color: var(--ink);
+}
+.indicator-latest strong, .metric-tile strong, .chart-summary>strong, .egfr-trend>strong {
+  color: var(--ink)!important;
+  font-weight: 650;
+}
+.indicator-change {
+  color: var(--ink);
+  font-weight: 600;
+}
+.indicator-change .icon {
+  color: var(--ink);
+}
+.factor>strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.contact-grid>div {
+  color: var(--ink);
+}
+.indicator-table tbody th {
+  color: var(--ink);
+  font-weight: 550;
+}
+.kdigo-value {
+  color: var(--ink);
+}
+/* Timeline: títulos de evento en negro */
+.timeline-event strong {
+  color: var(--ink)!important;
+  font-weight: 600;
+}
+/* Indicadores clave: columnas ajustadas al contenido */
+.indicator-table th, .indicator-table td {
+  width: 1%;
+  white-space: nowrap;
+}
+.indicator-table thead th, .indicator-table tbody th, .indicator-table td {
+  padding-left: 14px;
+  padding-right: 22px;
+}
+.indicator-table tbody th {
+  min-width: 170px;
+}
+.indicator-table .indicator-latest {
+  min-width: 0;
+}
+.indicator-table th:last-child, .indicator-table td:last-child {
+  width: auto;
+}
+.indicator-table tbody th {
+  width: 1%;
+}
+/* Cabeceras del listado y nombres de pacientes en negro */
+.overview-table th, .overview-table th button, .overview-table th abbr, .patient-table th, .patient-table th button {
+  color: var(--ink)!important;
+  font-weight: 600;
+}
+.overview-table th small {
+  color: var(--ink)!important;
+  font-weight: 400;
+  opacity: .75;
+}
+.overview-table .patient-link, .patient-table .patient-link {
+  color: var(--ink)!important;
+  font-weight: 600;
+}
+/* Títulos de sección en negro */
+.card h2, .section-heading h2, .panel-heading h2, .findings-card .section-heading h2 {
+  color: var(--ink)!important;
+  font-weight: 650;
+}
+/* Evolución de indicadores: texto en negro, tendencia bajo el valor y tooltip */
+.chart-summary {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.chart-change, .chart-change small, .chart-change .icon {
+  color: var(--ink)!important;
+}
+.chart-change {
+  font-size: 13px;
+  font-weight: 600;
+}
+.chart-change small {
+  display: inline!important;
+  font-weight: 400;
+}
+.main-chart text {
+  fill: var(--ink)!important;
+}
+.chart-tabs button, .period-select select, .period-select .icon, .chart-legend {
+  color: var(--ink)!important;
+}
+.chart-tabs button.selected {
+  font-weight: 600;
+}
+.chart-point {
+  cursor: pointer;
+  outline: none;
+}
+.chart-hit {
+  fill: transparent;
+}
+.chart-dot {
+  fill: #fff;
+  stroke: #0c8279;
+  stroke-width: 2.5;
+  transition: r .12s;
+}
+.chart-point:hover .chart-dot, .chart-point:focus .chart-dot {
+  fill: #0c8279;
+}
+.chart-tip {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s;
+}
+.chart-point:hover .chart-tip, .chart-point:focus .chart-tip {
+  opacity: 1;
+}
+.chart-tip rect {
+  fill: var(--ink);
+  stroke: none;
+}
+.main-chart .chart-tip-value {
+  fill: #fff!important;
+  font-size: 14px;
+  font-weight: 650;
+}
+.main-chart .chart-tip-date {
+  fill: #d6e2df!important;
+  font-size: 12px;
+}
+/* Riesgo cardiovascular: título de variables explicativas en negro */
+.factors-heading h3 {
+  color: var(--ink);
+  font-weight: 600;
+}
+/* Indicadores clave: cabeceras de la tabla en negro */
+.indicator-table thead th, .indicator-table thead .table-heading-hint {
+  color: var(--ink);
+}
+.indicator-table thead th {
+  font-weight: 600;
+}
+.indicator-table thead .table-heading-hint {
+  font-weight: 400;
+  opacity: .75;
+}
+/* Evolución de indicadores: pestañas de todos los indicadores en varias líneas */
+.chart-toolbar {
+  align-items: flex-start;
+}
+.chart-tabs {
+  flex-wrap: wrap;
+  row-gap: 2px;
+  min-width: 0;
+}
+.period-select {
+  flex-shrink: 0;
+}
+/* Evolución de indicadores: selector desplegable de indicador */
+.chart-picker-slot {
+  min-width: 0;
+}
+.chart-picker {
+  position: relative;
+}
+.chart-picker summary {
+  list-style: none;
+}
+.chart-picker summary::-webkit-details-marker {
+  display: none;
+}
+.chart-picker-trigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 210px;
+  padding: 6px 10px 6px 12px;
+  background: #fff;
+  border: 1px solid #e1e8e3;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px #123b2b08;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.chart-picker-trigger:hover {
+  background: #f6f9f7;
+  border-color: #becfc3;
+}
+.chart-picker[open] .chart-picker-trigger {
+  background: #f0f7f2;
+  border-color: #9cbeac;
+}
+.chart-picker-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  flex: 1;
+  min-width: 0;
+}
+.chart-picker-text small {
+  font-size: 11.5px;
+  color: #5d726b;
+  letter-spacing: .2px;
+}
+.chart-picker-text strong {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.chart-picker-trigger > .icon {
+  width: 16px;
+  height: 16px;
+  color: var(--ink);
+  transition: transform .15s;
+}
+.chart-picker[open] .chart-picker-trigger > .icon {
+  transform: rotate(180deg);
+}
+.chart-picker-menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  width: 320px;
+  max-height: 380px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #dfe9e1;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px #2849341f;
+  padding: 6px;
+  z-index: 20;
+}
+.chart-option-group + .chart-option-group {
+  border-top: 1px solid #edf1ee;
+  margin-top: 4px;
+  padding-top: 4px;
+}
+.chart-option-group-label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  color: #5d726b;
+  padding: 6px 8px 4px;
+}
+.chart-option {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 8px;
+  border-radius: 6px;
+  text-align: left;
+  color: var(--ink);
+}
+.chart-option:hover, .chart-option:focus-visible {
+  background: #f3f7f5;
+}
+.chart-option.selected {
+  background: #e9f4f0;
+}
+.chart-option-check .icon {
+  width: 15px;
+  height: 15px;
+  color: var(--teal);
+  stroke-width: 2.4;
+}
+.chart-option-name {
+  font-size: 14px;
+}
+.chart-option.selected .chart-option-name {
+  font-weight: 600;
+}
+.chart-option-value {
+  font-size: 13.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.chart-option-value small {
+  font-size: 12px;
+  font-weight: 400;
+  color: #5d726b;
+}
+.chart-toolbar {
+  align-items: center;
+}
+/* Ficha: Indicadores clave y Notas de consulta lado a lado (misma separación que las secciones de arriba) */
+.detail-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(330px, 380px);
+  gap: 14px;
+  align-items: stretch;
+}
+.detail-bottom-grid > .card {
+  margin-bottom: 0;
+  min-width: 0;
+}
+.detail-bottom-grid .notes-card {
+  display: flex;
+  flex-direction: column;
+}
+.detail-bottom-grid .notes-card .section-heading {
+  align-items: flex-start;
+}
+.detail-bottom-grid .local-label {
+  white-space: nowrap;
+  padding-top: 4px;
+}
+.detail-bottom-grid .notes-layout {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 16px;
+  flex: 1;
+}
+.detail-bottom-grid .notes-list {
+  max-height: 330px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.detail-bottom-grid .note-editor {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #edf1ee;
+  padding-top: 14px;
+}
+.detail-bottom-grid .note-editor textarea {
+  flex: 1;
+  min-height: 140px;
+}
+@media(max-width:1359px) {
+  .detail-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+  .detail-bottom-grid .notes-layout {
+    grid-template-columns: 1.1fr 1fr;
+    grid-template-rows: auto;
+  }
+  .detail-bottom-grid .note-editor {
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+@media(max-width:1200px) {
+  .detail-bottom-grid {
+    gap: 12px;
+  }
+}
+@media(max-width:760px) {
+  .detail-bottom-grid .notes-layout {
+    grid-template-columns: 1fr;
+  }
+}
+.detail-bottom-grid .clinical-note {
+  margin-bottom: 0;
+}
+/* Ajuste de ancho para que la tabla de indicadores quepa junto a las notas */
+.detail-bottom-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
+}
+.detail-bottom-grid .indicator-table thead th, .detail-bottom-grid .indicator-table tbody th, .detail-bottom-grid .indicator-table td {
+  padding-left: 12px;
+  padding-right: 16px;
+}
+.detail-bottom-grid .indicator-table tr > th:first-child {
+  padding-left: 17px;
+}
+.detail-bottom-grid .indicator-table tbody th {
+  min-width: 150px;
+}
+.detail-bottom-grid .notes-card .section-heading {
+  flex-direction: column;
+  gap: 6px;
+}
+.detail-bottom-grid .local-label {
+  padding-top: 0;
+}
+@media(max-width:1359px) {
+  .detail-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+  .detail-bottom-grid .notes-card .section-heading {
+    flex-direction: row;
+  }
+}
+/* Ajuste clínico de la clasificación de riesgo */
+.risk-classification {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.override-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4b5b8a;
+  background: #eef1fa;
+  border: 1px solid #dfe4f3;
+  border-radius: 5px;
+  padding: 1px 6px;
+}
+.override-tag .icon {
+  width: 11px;
+  height: 11px;
+}
+.adjust-risk {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-left: 2px;
+}
+.adjust-risk .icon {
+  width: 13px;
+  height: 13px;
+}
+.override-note {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  margin: 2px 0 12px;
+  padding: 10px 12px;
+  background: #f5f7fc;
+  border: 1px solid #e3e8f4;
+  border-radius: 8px;
+}
+.override-note > .icon {
+  width: 14px;
+  height: 14px;
+  color: #4b5b8a;
+  margin-top: 3px;
+}
+.override-note strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.override-note span {
+  display: block;
+  font-size: 12px;
+  color: #5d6c80;
+  margin-top: 1px;
+}
+.override-note p {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+  margin-top: 5px;
+}
+.override-mark {
+  display: inline-flex;
+  margin-left: 4px;
+  color: #4b5b8a;
+  cursor: help;
+}
+.override-mark .icon {
+  width: 12px;
+  height: 12px;
+}
+/* Ventana de ajuste */
+.risk-form-model {
+  padding: 12px 14px;
+  background: #f8faf9;
+  border: 1px solid #e6ece8;
+  border-radius: 9px;
+}
+.risk-form-model > span {
+  font-size: 12px;
+  color: #5d726b;
+  letter-spacing: .2px;
+}
+.risk-form-model > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 2px 0 6px;
+}
+.risk-form-model > div > strong {
+  font-size: 24px;
+  font-weight: 650;
+  color: var(--ink);
+  letter-spacing: -.5px;
+  font-variant-numeric: tabular-nums;
+}
+.risk-form-model small {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #5d726b;
+}
+.risk-form-model small .icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.risk-options {
+  border: 0;
+  padding: 0;
+  margin: 16px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.risk-options legend {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 8px;
+  padding: 0;
+}
+.risk-option {
+  position: relative;
+  cursor: pointer;
+}
+.risk-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.risk-option-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  height: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e1e8e3;
+  border-radius: 9px;
+  background: #fff;
+  transition: border-color .15s, background .15s, box-shadow .15s;
+}
+.risk-option:hover .risk-option-body {
+  border-color: #becfc3;
+}
+.risk-option input:checked + .risk-option-body {
+  border-color: var(--risk-color);
+  background: var(--risk-bg);
+  box-shadow: 0 0 0 1px var(--risk-color);
+}
+.risk-option input:focus-visible + .risk-option-body {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+.risk-option-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.risk-option-title .dot {
+  width: 8px;
+  height: 8px;
+  background: var(--risk-color);
+}
+.risk-option-title strong {
+  font-size: 14.5px;
+  font-weight: 650;
+  color: var(--ink);
+}
+.risk-option-title em {
+  margin-left: auto;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 600;
+  color: #5d726b;
+  background: #eef2f1;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.risk-option-body small {
+  font-size: 12px;
+  color: #5d726b;
+}
+.risk-reason {
+  display: block;
+  margin: 16px 0 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.risk-reason small {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: #5d726b;
+  margin-top: 1px;
+}
+.risk-form textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #e1e8e3;
+  border-radius: 8px;
+  padding: 10px 11px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.risk-form-error {
+  min-height: 18px;
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: #b2443d;
+}
+.risk-form .modal-footer {
+  margin-top: 6px;
+}
+.risk-form .restore-risk {
+  margin-right: auto;
+}
+@media(max-width:560px) {
+  .risk-options {
+    grid-template-columns: 1fr;
+  }
+  .risk-form .modal-footer {
+    flex-wrap: wrap;
+  }
+}
+/* Campos de formulario siempre claros, aunque el navegador o el sistema estén en modo oscuro */
+:root {
+  color-scheme: light;
+}
+.risk-form textarea {
+  background: #fff;
+}
+.risk-form textarea::placeholder {
+  color: #61736a;
+}
+.risk-form textarea:focus {
+  outline: 2px solid #8dc6be;
+  outline-offset: 1px;
+  border-color: #8dc6be;
+}
+/* Indicadores clave + Notas: en pantallas anchas, mismas columnas y separación que Evolución de indicadores + Hallazgos activos.
+   En pantallas medianas la tabla no cabría en esa columna, así que Notas mantiene un ancho fijo. */
+@media(min-width:1600px) {
+  .detail-bottom-grid {
+    grid-template-columns: 1.14fr 1fr;
+  }
+}
+.detail-bottom-grid .indicator-table thead th, .detail-bottom-grid .indicator-table tbody th, .detail-bottom-grid .indicator-table td {
+  padding-left: 10px;
+  padding-right: 12px;
+}
+.detail-bottom-grid .indicator-table tbody th {
+  min-width: 132px;
+}
+.detail-bottom-grid .indicator-trend, .detail-bottom-grid .indicator-trend svg {
+  width: 118px;
+}
+@media(max-width:1359px) {
+  .detail-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.detail-bottom-grid .indicator-table {
+  min-width: 0;
+}
+.detail-bottom-grid .indicator-table thead th {
+  white-space: normal;
+  line-height: 1.3;
+  vertical-align: bottom;
+}
+.detail-bottom-grid .indicator-table .table-heading-hint {
+  display: block;
+  margin-left: 0;
+}
+.detail-bottom-grid .comparison-date {
+  white-space: nowrap;
+}
