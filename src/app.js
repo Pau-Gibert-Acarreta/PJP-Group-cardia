@@ -1,9 +1,12 @@
 import { patients, riskLevel, RISK_LABELS, formatNumber as num, formatDate as date, selectPatients } from './data.js';
-import { icon, avatar, sparkline, esc } from './ui.js';
-import { chartTabs, chartData, chart, metrics } from './charts.js';
+import { icon, avatar, esc } from './ui.js';
+import { chartTabs, chartData, chart } from './charts.js';
+import { loadClinicalConfig, summarizeIndicator, patientKdigo, getSeries } from './clinical.js';
+import { overviewHeader, overviewRow, renderIndicators, renderFindings } from './clinical-ui.js';
+let clinicalConfig, ruleConfig;
 const $ = selector => document.querySelector(selector);
 const defaults = () => ({ search: '', risk: 'all', sex: 'all', condition: 'all', age: 'all', followupOnly: false, sort: 'risk-desc' });
-const state = { filters: defaults(), page: 1, perPage: 8, nav: 'patients', topK: 3, topP: 6, chart: 'ldl', period: '12', drafts: {}, noteEditing: null };
+const state = { filters: defaults(), page: 1, perPage: 8, nav: 'patients', topK: 3, chart: 'ldl', period: '12', drafts: {}, noteEditing: null };
 let storageAvailable = true;
 function readStorage(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { storageAvailable = false; return fallback; } }
 function saveStorage(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { storageAvailable = false; return false; } }
@@ -64,8 +67,8 @@ function updateResults() {
   const labels = { risk: 'Riesgo ' + (RISK_LABELS[state.filters.risk] || ''), sex: state.filters.sex, age: state.filters.age === '65plus' ? '≥ 65 años' : '< 65 años', condition: state.filters.condition };
   $('#active-filters').innerHTML = filters.map(k => '<button class="filter-chip" data-action="remove-filter" data-filter="' + k + '">' + esc(labels[k]) + icon('close') + '</button>').join('') + (filters.length ? '<button class="text-button" data-action="clear">Limpiar filtros</button>' : '');
   document.querySelectorAll('select[data-filter]').forEach(el => el.value = state.filters[el.dataset.filter]);
-  $('#patient-results').innerHTML = items.length ? '<div class="table-scroll"><table class="patient-table"><thead><tr><th>Paciente</th><th>Edad / sexo</th><th><button data-action="sort-risk">Riesgo cardiovascular ' + icon(state.filters.sort === 'risk-asc' ? 'arrowUp' : 'arrowDown') + '</button></th><th>Evolución del riesgo</th><th>Última analítica</th><th class="followup-column">Seguimiento</th><th><span class="sr-only">Ver ficha</span></th></tr></thead><tbody>' +
-    items.slice(start, start + state.perPage).map(p => '<tr data-patient-row="' + p.id + '"><td><div class="patient-cell">' + avatar(p) + '<div><a class="patient-link" href="#paciente/' + p.id + '">' + p.name + '</a><small>' + p.cip + '</small></div></div></td><td><strong class="age-value">' + p.age + ' años</strong><small>' + p.sex + '</small></td><td><div class="risk-cell"><strong>' + num(p.risk, 1) + '<span> %</span></strong>' + badge(p) + '</div></td><td><div class="trend-cell">' + sparkline(p) + '<span>12 meses</span></div></td><td><div class="test-date">' + icon('flask') + date(p.lastTest) + '</div></td><td class="followup-column"><button class="followup-toggle ' + (p.followup ? 'is-followed' : '') + '" data-action="followup" data-id="' + p.id + '" aria-label="' + (p.followup ? 'Quitar a ' : 'Añadir a ') + p.name + (p.followup ? ' de seguimiento' : ' a seguimiento') + '" aria-pressed="' + p.followup + '">' + icon(p.followup ? 'bookmark' : 'plus') + '<span>' + (p.followup ? 'En seguimiento' : 'Añadir') + '</span></button></td><td><a class="row-arrow" href="#paciente/' + p.id + '" aria-label="Abrir ficha de ' + p.name + '">' + icon('chevron') + '</a></td></tr>').join('') +
+  $('#patient-results').innerHTML = items.length ? '<div class="table-scroll" role="region" aria-label="Listado con indicadores clínicos, desplazable horizontalmente" tabindex="0"><table class="patient-table overview-table">' + overviewHeader(clinicalConfig, state.filters.sort) + '<tbody>' +
+    items.slice(start, start + state.perPage).map(p => overviewRow(p, clinicalConfig)).join('') +
     '</tbody></table></div><div class="pagination"><span>Mostrando <strong>' + (start + 1) + '–' + Math.min(start + state.perPage, items.length) + '</strong> de <strong>' + items.length + '</strong> pacientes</span><div><button class="icon-button" aria-label="Página anterior" data-action="page" data-page="' + (state.page - 1) + '" ' + (state.page === 1 ? 'disabled' : '') + '>' + icon('arrow') + '</button>' + Array.from({ length: Math.ceil(items.length / state.perPage) }, (_, i) => '<button class="page-number ' + (state.page === i + 1 ? 'current' : '') + '" data-action="page" data-page="' + (i + 1) + '" aria-label="Página ' + (i + 1) + '" ' + (state.page === i + 1 ? 'aria-current="page"' : '') + '>' + (i + 1) + '</button>').join('') + '<button class="icon-button" aria-label="Página siguiente" data-action="page" data-page="' + (state.page + 1) + '" ' + (start + state.perPage >= items.length ? 'disabled' : '') + '>' + icon('chevron') + '</button></div></div>' :
     '<div class="empty-state"><span>' + icon('search') + '</span><h3>No hay pacientes con estos criterios</h3><p>Prueba con otro nombre o ajusta los filtros de búsqueda.</p><button class="button secondary" data-action="clear-all">Restablecer búsqueda y filtros</button></div>';
 }
@@ -76,7 +79,7 @@ function renderPatient(p) {
     '<section class="card prediction-card"><div class="section-heading"><h2>Riesgo cardiovascular</h2><button class="icon-button small" data-action="risk-info" aria-label="Información sobre el riesgo">' + icon('info') + '</button></div><div class="prediction-overview"><div class="risk-gauge ' + riskLevel(p.risk) + '"><svg viewBox="0 0 110 110" aria-hidden="true"><circle class="gauge-bg" cx="55" cy="55" r="45"/><circle class="gauge-value" cx="55" cy="55" r="45" pathLength="100" stroke-dasharray="' + p.risk + ' 100"/></svg><div><strong>' + num(p.risk, 1) + '<small>%</small></strong><span>probabilidad</span></div></div><div>' + badge(p) + '<h3>Estimación a 10 años</h3><p>Probabilidad ficticia de un evento<br>cardiovascular para esta demostración.</p><span class="simulation-label"><i></i> Predicción simulada</span></div></div><div class="factors-heading"><h3>Variables que explican la estimación</h3><label>Top <select id="top-k" aria-label="Número de variables explicativas"><option value="3" ' + (state.topK === 3 ? 'selected' : '') + '>3</option><option value="5" ' + (state.topK === 5 ? 'selected' : '') + '>5</option></select></label></div><div class="factors">' + p.factors.slice(0, state.topK).map(f => '<div class="factor"><span>' + f.label + '</span><div class="factor-track"><i style="width:' + f.weight + '%"></i></div><strong>' + f.value + '</strong></div>').join('') + '</div><p class="factor-caption">Contribución relativa ilustrativa. No implica causalidad.</p></section></div>' +
     '<section class="card timeline-card"><div class="section-heading"><div><h2>' + icon('clock') + ' Historia cardiovascular</h2><p>Pruebas y acontecimientos relevantes en el tiempo.</p></div><span class="subtle-label">Selecciona un evento para consultarlo ' + icon('chevron') + '</span></div><div class="timeline">' + p.events.map((e, i) => '<button class="timeline-event ' + (i === p.events.length - 1 ? 'latest' : '') + '" data-action="event" data-event="' + e.id + '"><span class="event-date">' + date(e.date) + '</span><span class="event-marker">' + icon(e.icon) + '</span><strong>' + e.title + '</strong><span class="event-type">' + e.type + '</span></button>').join('') + '</div></section>' +
     '<div class="clinical-grid"><section class="card chart-card"><div class="section-heading"><div><h2>Evolución de indicadores</h2><p>Una perspectiva de los cambios en el tiempo.</p></div><button class="icon-button small" data-action="expand-chart" aria-label="Ampliar gráfica">' + icon('expand') + '</button></div><div class="chart-toolbar"><div class="chart-tabs">' + chartTabs(state) + '</div><label class="period-select"><select id="chart-period" aria-label="Periodo de la gráfica"><option value="6" ' + (state.period === '6' ? 'selected' : '') + '>6 meses</option><option value="12" ' + (state.period === '12' ? 'selected' : '') + '>12 meses</option></select>' + icon('down') + '</label></div><div id="chart-content">' + chart(p, state) + '</div></section>' +
-    '<section class="card metrics-card"><div class="section-heading"><div><h2>Indicadores clínicos clave</h2><p>Valores de la última analítica y exploración.</p></div><label class="top-p-label">Top <select id="top-p" aria-label="Número de indicadores clínicos"><option value="4" ' + (state.topP === 4 ? 'selected' : '') + '>4</option><option value="6" ' + (state.topP === 6 ? 'selected' : '') + '>6</option></select></label></div><div class="metrics-grid">' + metrics(p).slice(0, state.topP).map(m => '<div class="metric-tile"><span>' + m.name + '</span><div><strong>' + m.value + '</strong><small>' + m.unit + '</small></div><p>' + m.caption + '</p></div>').join('') + '</div><div class="metrics-footnote">' + icon('info') + ' Selección clínica, independiente de los factores de la predicción.</div></section></div>' +
+    renderFindings(p, clinicalConfig, ruleConfig) + '</div>' + renderIndicators(p, clinicalConfig) +
     '<section class="card notes-card" id="clinical-notes"><div class="section-heading"><div><h2>' + icon('note') + ' Notas de consulta <span class="count-pill">' + notesFor(p).length + '</span></h2><p>Tu contexto clínico también forma parte de la historia.</p></div><span class="local-label">' + icon('shield') + ' Guardadas en este navegador</span></div><div class="notes-layout"><div class="notes-list">' + notesFor(p).map(n => '<article class="clinical-note"><div class="note-header"><span class="note-avatar">CV</span><div><strong>' + esc(n.author) + '</strong><time>' + noteDate(n.date) + '</time></div>' + (!n.id.startsWith('seed-') ? '<button class="text-button" data-action="edit-note" data-note="' + esc(n.id) + '">Editar</button>' : '') + '</div><p>' + esc(n.text) + '</p></article>').join('') + '</div><form id="note-form" class="note-editor"><label for="note-text">' + (state.noteEditing ? 'Editar nota' : 'Añadir una nota') + '</label><textarea id="note-text" required maxlength="2000" rows="5" placeholder="Escribe tus observaciones de la consulta…">' + esc(state.drafts[p.id] || '') + '</textarea><div class="editor-footer"><small id="note-counter">' + (state.drafts[p.id]?.length || 0) + '/2000</small>' + (state.noteEditing ? '<button type="button" class="text-button" data-action="cancel-note">Cancelar</button>' : '') + '<button class="button primary" type="submit">' + icon('plus') + (state.noteEditing ? 'Guardar cambios' : 'Guardar nota') + '</button></div><small class="privacy-hint">Usa únicamente información ficticia en esta demo.</small></form></div></section>';
 }
 function notesFor(p) { return [...(Array.isArray(savedNotes[p.id]) ? savedNotes[p.id].filter(n => n && typeof n.text === 'string' && typeof n.id === 'string' && typeof n.date === 'string') : []), ...p.notes].sort((a, b) => b.date.localeCompare(a.date)); }
@@ -89,9 +92,10 @@ function openModal(title, body, wide = false) {
 }
 function openEvent(id) {
   const p = currentPatient(), e = p.events.find(e => e.id === id);
-  const lab = e.type === 'Laboratorio', prev = id === 'lab-previous';
+  const lab = e.type === 'Laboratorio';
+  const results = clinicalConfig.indicators.filter(item => item.kind !== 'vital').map(item => ({ ...item, latest: getSeries(p, item).filter(point => point.date.slice(0, 10) <= e.date).at(-1) })).filter(item => item.latest);
   openModal(e.title, '<div class="event-dialog-meta"><span class="event-dialog-icon">' + icon(e.icon) + '</span><div><span class="eyebrow">' + e.type + '</span><p>' + date(e.date, true) + ' · ' + p.name + '</p></div></div><p class="event-description">' + e.description + '</p>' +
-    (lab ? '<table class="lab-table"><thead><tr><th>Determinación</th><th>Resultado</th><th>Unidad</th></tr></thead><tbody>' + metrics(p, prev).filter(m => !['Presión arterial', 'Índice de masa corporal'].includes(m.name)).map(m => '<tr><td>' + m.name + '</td><td><strong>' + m.value + '</strong></td><td>' + m.unit + '</td></tr>').join('') + '</tbody></table>' :
+    (lab ? '<table class="lab-table"><thead><tr><th>Determinación</th><th>Resultado</th><th>Unidad</th></tr></thead><tbody>' + results.map(item => '<tr><td>' + esc(item.label) + '</td><td><strong>' + num(item.latest.value, item.decimals) + '</strong></td><td>' + esc(item.unit) + '</td></tr>').join('') + '</tbody></table>' :
     '<div class="event-report"><h3>Detalle del registro</h3><p>' + (id === 'ecg' ? 'Ritmo sinusal registrado a 72 lpm. Registro de ejemplo sin trazado adjunto.' : id === 'medication' ? 'Se revisan la medicación habitual, la adherencia referida y los registros de presión arterial. Nota de tratamiento ficticia para explorar el historial.' : 'Se documentan los antecedentes y se inicia el registro de indicadores para el seguimiento cardiovascular.') + '</p></div>') +
     '<div class="modal-note">' + icon('info') + ' Documento de ejemplo · resultados ficticios</div><div class="modal-footer"><button class="button primary" data-action="close-modal">Cerrar detalle</button></div>');
 }
@@ -103,7 +107,8 @@ function toast(message) { $('#toast').textContent = message; $('#toast').classLi
 function setFilter(key, value) { state.filters[key] = value; state.page = 1; updateResults(); }
 function resetFilters(all = false) { const search = all ? '' : state.filters.search; state.filters = { ...defaults(), search }; state.page = 1; state.nav = 'patients'; shell(); }
 function exportList() {
-  const rows = [['Identificador', 'Paciente', 'Edad', 'Sexo', 'Riesgo simulado (%)', 'Nivel de riesgo', 'Última analítica', 'Seguimiento'], ...selectPatients(patients, state.filters).map(p => [p.cip, p.name, p.age, p.sex, num(p.risk, 1), RISK_LABELS[riskLevel(p.risk)], p.lastTest, p.followup ? 'Sí' : 'No'])];
+  const definitions = clinicalConfig.overviewFields.map(field => clinicalConfig.indicators.find(item => item.field === field));
+  const rows = [['Identificador', 'Riesgo simulado (%)', 'Nivel de riesgo', 'Paciente', 'Edad', 'Sexo', 'KDIGO (eGFR / ACR)', ...definitions.map(item => item.label + ' (' + item.unit + ')'), 'Fecha última prueba'], ...selectPatients(patients, state.filters).map(p => [p.cip, num(p.risk, 1), RISK_LABELS[riskLevel(p.risk)], p.name, p.age, p.sex, patientKdigo(p, clinicalConfig) || '', ...definitions.map(item => { const latest = summarizeIndicator(p, item).latest; return latest ? num(latest.value, item.decimals) : ''; }), p.lastTest])];
   const csv = '\uFEFF' + rows.map(row => row.map(v => '"' + String(v).replaceAll('"', '""') + '"').join(';')).join('\r\n');
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
   const a = document.createElement('a'); a.href = url; a.download = 'cardia-pacientes-demo.csv'; a.click();
@@ -118,6 +123,7 @@ function handleAction(event) {
     return;
   }
   const action = target.dataset.action, p = currentPatient();
+  if (action === 'retry-config') { boot(); return; }
   if (action === 'nav') {
     state.nav = target.dataset.nav; state.filters = defaults(); state.page = 1;
     if (state.nav === 'priority') state.filters.risk = 'high';
@@ -167,7 +173,6 @@ $('#app').addEventListener('change', event => {
   if (el.matches('select[data-filter]')) setFilter(el.dataset.filter, el.value);
   if (el.id === 'sort') setFilter('sort', el.value);
   if (el.id === 'top-k') { state.topK = Number(el.value); renderPatient(p); $('#top-k').focus(); }
-  if (el.id === 'top-p') { state.topP = Number(el.value); renderPatient(p); $('#top-p').focus(); }
   if (el.id === 'chart-period') { state.period = el.value; $('#chart-content').innerHTML = chart(p, state); }
 });
 $('#app').addEventListener('submit', event => {
@@ -184,7 +189,17 @@ $('#app').addEventListener('submit', event => {
   $('#clinical-notes').scrollIntoView({ behavior: 'smooth', block: 'start' });
   toast(persisted ? 'Nota guardada en este navegador' : 'Nota guardada solo durante esta sesión');
 });
-window.addEventListener('hashchange', () => { $('#modal').close(); state.noteEditing = null; state.chart = 'ldl'; shell(); window.scrollTo({ top: 0, behavior: 'instant' }); });
-shell();
-if (!storageAvailable) toast('Almacenamiento local no disponible. Los cambios durarán esta sesión.');
+window.addEventListener('hashchange', () => { if (!clinicalConfig) return; $('#modal').close(); state.noteEditing = null; state.chart = 'ldl'; shell(); window.scrollTo({ top: 0, behavior: 'instant' }); });
+async function boot() {
+  try {
+    const loaded = await loadClinicalConfig();
+    clinicalConfig = loaded.config; ruleConfig = loaded.ruleConfig;
+    shell();
+    if (!storageAvailable) toast('Almacenamiento local no disponible. Los cambios durarán esta sesión.');
+  } catch (error) {
+    console.error('Configuración clínica:', error);
+    $('#app').innerHTML = '<main class="config-error"><h1>No se puede cargar la configuración</h1><p>Comprueba los archivos de indicadores y reglas y vuelve a intentarlo.</p><button class="button primary" data-action="retry-config">Reintentar</button></main>';
+  }
+}
+boot();
 

@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "description": "Claves provisionales de datos. field debe coincidir con la variable entregada por el futuro adaptador de la base de datos.",
+  "indicators": [
+    {
+      "field": "systolic",
+      "label": "PA sistólica",
+      "shortLabel": "PA sistólica",
+      "unit": "mmHg",
+      "decimals": 0,
+      "kind": "vital"
+    },
+    {
+      "field": "diastolic",
+      "label": "PA diastólica",
+      "shortLabel": "PA diastólica",
+      "unit": "mmHg",
+      "decimals": 0,
+      "kind": "vital"
+    },
+    {
+      "field": "total_cholesterol",
+      "label": "Colesterol total",
+      "shortLabel": "Colesterol total",
+      "unit": "mg/dL",
+      "decimals": 0,
+      "kind": "lab"
+    },
+    {
+      "field": "hdl_cholesterol",
+      "label": "Colesterol HDL",
+      "shortLabel": "Colesterol HDL",
+      "unit": "mg/dL",
+      "decimals": 0,
+      "kind": "lab"
+    },
+    {
+      "field": "hba1c",
+      "label": "HbA1c",
+      "shortLabel": "HbA1c",
+      "unit": "%",
+      "decimals": 1,
+      "kind": "lab"
+    },
+    {
+      "field": "acr",
+      "label": "Albuminuria (ACR)",
+      "shortLabel": "ACR",
+      "unit": "mg/g",
+      "decimals": 0,
+      "kind": "lab"
+    },
+    {
+      "field": "serum_creatinine",
+      "label": "Creatinina sérica",
+      "shortLabel": "Creatinina",
+      "unit": "mg/dL",
+      "decimals": 2,
+      "kind": "lab"
+    },
+    {
+      "field": "egfr",
+      "label": "eGFR",
+      "shortLabel": "eGFR",
+      "unit": "mL/min/1,73 m²",
+      "decimals": 0,
+      "kind": "lab"
+    }
+  ],
+  "overviewFields": [
+    "egfr",
+    "acr",
+    "systolic",
+    "diastolic",
+    "hba1c"
+  ],
+  "kdigoFields": {
+    "egfr": "egfr",
+    "acr": "acr"
+  }
+}
