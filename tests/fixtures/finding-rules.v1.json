@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "description": "Reglas ilustrativas de demostración, pendientes de validación clínica. Se aplican a las dos últimas mediciones válidas del mismo campo y unidad.",
+  "rules": [
+    {
+      "id": "systolic-rise",
+      "enabled": true,
+      "field": "systolic",
+      "title": "Aumento de PA sistólica",
+      "severity": "warning",
+      "maxIntervalDays": 180,
+      "conditions": [
+        {
+          "metric": "delta",
+          "operator": "gte",
+          "value": 15
+        }
+      ]
+    },
+    {
+      "id": "diastolic-rise",
+      "enabled": true,
+      "field": "diastolic",
+      "title": "Aumento de PA diastólica",
+      "severity": "attention",
+      "maxIntervalDays": 180,
+      "conditions": [
+        {
+          "metric": "delta",
+          "operator": "gte",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "hba1c-rise",
+      "enabled": true,
+      "field": "hba1c",
+      "title": "Aumento de HbA1c",
+      "severity": "attention",
+      "maxIntervalDays": 180,
+      "conditions": [
+        {
+          "metric": "delta",
+          "operator": "gte",
+          "value": 0.5
+        }
+      ]
+    },
+    {
+      "id": "acr-rise",
+      "enabled": true,
+      "field": "acr",
+      "title": "Aumento de albuminuria",
+      "severity": "warning",
+      "maxIntervalDays": 180,
+      "conditions": [
+        {
+          "metric": "percent_change",
+          "operator": "gte",
+          "value": 50
+        },
+        {
+          "metric": "delta",
+          "operator": "gte",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "egfr-fall",
+      "enabled": true,
+      "field": "egfr",
+      "title": "Descenso de eGFR",
+      "severity": "warning",
+      "maxIntervalDays": 180,
+      "conditions": [
+        {
+          "metric": "percent_change",
+          "operator": "lte",
+          "value": -20
+        }
+      ]
+    },
+    {
+      "id": "creatinine-rise",
+      "enabled": true,
+      "field": "serum_creatinine",
+      "title": "Aumento de creatinina",
+      "severity": "attention",
+      "maxIntervalDays": 180,
+      "conditions": [
+        {
+          "metric": "delta",
+          "operator": "gte",
+          "value": 0.3
+        }
+      ]
+    }
+  ]
+}

@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections import defaultdict
 
 from psycopg import Connection
+from psycopg.rows import tuple_row
 
 from . import findings_service
 from .clinical_config import ClinicalConfig
@@ -106,17 +107,25 @@ def _latest_values(conn: Connection, ids: list[int] | None, codes: list[str]) ->
 
 
 def measurements_for(conn: Connection, ids: list[int]) -> dict[int, dict[str, list[dict]]]:
-    """{patient_id: {field: [{value, date, unit}]}} ordenado por fecha."""
-    rows = conn.execute("""
-        SELECT m.patient_id, m.indicator_code, m.measured_at, m.value, i.unit, m.source
-        FROM measurement m JOIN indicator i ON i.code = m.indicator_code
-        WHERE m.patient_id = ANY(%s)
-        ORDER BY m.patient_id, m.indicator_code, m.measured_at
-    """, [ids])
-    out: dict[int, dict[str, list[dict]]] = defaultdict(lambda: defaultdict(list))
-    for r in rows:
-        out[r["patient_id"]][r["indicator_code"]].append(
-            {"value": r["value"], "date": iso(r["measured_at"]), "unit": r["unit"], "source": r["source"]})
+    """{patient_id: {field: [{value, date, unit}]}} ordenado por fecha.
+
+    La fecha se formatea en SQL (misma regla que formatting.iso: día si es medianoche UTC,
+    instante si no) y se leen tuplas: con el cupo completo son ~120.000 filas.
+    """
+    with conn.cursor(row_factory=tuple_row) as cur:
+        cur.execute("""
+            SELECT m.patient_id, m.indicator_code, m.value, i.unit, m.source,
+                   CASE WHEN (m.measured_at AT TIME ZONE 'UTC')::time = '00:00'
+                        THEN to_char(m.measured_at AT TIME ZONE 'UTC', 'YYYY-MM-DD')
+                        ELSE to_char(m.measured_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+                   END
+            FROM measurement m JOIN indicator i ON i.code = m.indicator_code
+            WHERE m.patient_id = ANY(%s)
+            ORDER BY m.patient_id, m.indicator_code, m.measured_at
+        """, [ids])
+        out: dict[int, dict[str, list[dict]]] = defaultdict(lambda: defaultdict(list))
+        for pid, code, value, unit, source, date in cur:
+            out[pid][code].append({"value": value, "date": date, "unit": unit, "source": source})
     return out
 
 

@@ -41,16 +41,22 @@ function toggleRiskSort() {
 }
 
 function exportList() {
-  downloadCsv(buildPatientsCsv(getPatients(), state.filters, clinical.config), 'cardia-pacientes-demo.csv');
-  toast('Listado filtrado exportado con datos ficticios');
+  downloadCsv(buildPatientsCsv(getPatients(), state.filters, clinical.config), 'cardia-pacientes.csv');
+  toast('Listado filtrado exportado (el riesgo es simulado)');
 }
 
 // ---- Ficha del paciente ----
 
-function followup(id, p) {
-  const { patient, persisted } = toggleFollowup(id);
-  if (p) renderPatient(p); else updateResults();
-  toast((patient.followup ? 'Paciente añadido a seguimiento' : 'Paciente retirado del seguimiento') + (!persisted ? ' · solo durante esta sesión' : ''));
+async function followup(id, p) {
+  const refresh = () => { if (p) renderPatient(p); else updateResults(); };
+  try {
+    const patient = await toggleFollowup(id);
+    refresh();
+    toast(patient.followup ? 'Paciente añadido a seguimiento' : 'Paciente retirado del seguimiento');
+  } catch (error) {
+    refresh();
+    toast('No se ha podido guardar el seguimiento: ' + error.message);
+  }
 }
 
 function selectChart(p, key) {
@@ -64,13 +70,24 @@ function editNote(p, noteId) {
 
 function cancelNote(p) { state.noteEditing = null; state.drafts[p.id] = ''; renderPatient(p); }
 
-export function submitNote() {
+export async function submitNote() {
   const p = currentPatient(), text = $('#note-text').value.trim();
   if (!text) { $('#note-text').setCustomValidity('Escribe una observación antes de guardar.'); $('#note-text').reportValidity(); $('#note-text').setCustomValidity(''); return; }
-  const persisted = saveNote(p.id, text, state.noteEditing);
-  state.drafts[p.id] = ''; state.noteEditing = null; renderPatient(p);
+  const button = $('#note-form button[type="submit"]');
+  button.disabled = true;
+  try {
+    await saveNote(p, text, state.noteEditing);
+  } catch (error) {
+    // Se conserva el borrador para no perder lo escrito.
+    button.disabled = false;
+    toast('No se ha podido guardar la nota: ' + error.message);
+    return;
+  }
+  state.drafts[p.id] = ''; state.noteEditing = null;
+  if (currentPatient() !== p) return;
+  renderPatient(p);
   $('#clinical-notes').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  toast(persisted ? 'Nota guardada en este navegador' : 'Nota guardada solo durante esta sesión');
+  toast('Nota guardada');
 }
 
 export function setTopK(value) { state.topK = Number(value); renderPatient(currentPatient()); $('#top-k').focus(); }
@@ -101,6 +118,8 @@ function restoreRiskClassification(p) {
 }
 
 function confirmReset() {
+  // Notas y seguimiento están en el servidor; aquí solo se borra lo local (ajustes de riesgo simulado
+  // y las claves antiguas de notas y seguimiento de la versión sin backend).
   try { removeStorage(STORAGE_KEYS.notes, STORAGE_KEYS.followups, STORAGE_KEYS.riskOverrides); location.reload(); } catch { toast('No se ha podido acceder al almacenamiento del navegador'); }
 }
 

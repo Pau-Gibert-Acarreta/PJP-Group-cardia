@@ -97,7 +97,8 @@ def test_unknown_patient_404(client):
 
 def test_rules_config_endpoint(client):
     body = client.get("/api/v1/config/rules").json()
-    assert body["rulesVersion"].startswith("v") and any(r["id"] == "systolic-rise" for r in body["rules"])
+    assert body["rulesVersion"].startswith("v2-")
+    assert any(r["id"] == "presion-sistolica-grado-3" for r in body["rules"])
 
 
 def test_new_test_creates_finding_and_risk(client, monkeypatch_module):
@@ -110,16 +111,16 @@ def test_new_test_creates_finding_and_risk(client, monkeypatch_module):
                               "unit": "mmHg", "contribution": 0.05}]}
 
     monkeypatch_module.setattr(risk_service, "_post", fake_post)
-    # Último systolic: 121 el 2025-09-03. 140 el 2025-12-01 = +19 en 89 días -> systolic-rise.
+    # Último systolic: 121 el 2025-09-03. 185 el 2025-12-01 -> presion-sistolica-grado-3 (>= 180).
     r = client.post(f"/api/v1/patients/{PID}/tests",
-                    json={"takenAt": TEST_TIME, "values": {"systolic": 140, "diastolic": 70}})
+                    json={"takenAt": TEST_TIME, "values": {"systolic": 185, "diastolic": 70}})
     assert r.status_code == 201, r.text
     body = r.json()
     assert body["findings"]["created"] == 1
-    assert [f["ruleId"] for f in body["findings"]["active"]] == ["systolic-rise"]
-    assert body["findings"]["active"][0]["delta"] == 19
+    assert [f["ruleId"] for f in body["findings"]["active"]] == ["presion-sistolica-grado-3"]
+    assert body["findings"]["active"][0]["delta"] == 64
     assert body["risk"][0]["status"] == "stored" and sent["url"] == "http://ml.test/v1/predict"
-    assert sent["payload"]["features"]["systolic"] == 140
+    assert sent["payload"]["features"]["systolic"] == 185
     assert "cvd" not in sent["payload"]["features"]  # nunca etiquetas en serving
 
     p = client.get(f"/api/v1/patients/{PID}").json()
@@ -128,7 +129,7 @@ def test_new_test_creates_finding_and_risk(client, monkeypatch_module):
 
     # Repetir la misma prueba: conflicto, no duplica.
     again = client.post(f"/api/v1/patients/{PID}/tests",
-                        json={"takenAt": TEST_TIME, "values": {"systolic": 140}})
+                        json={"takenAt": TEST_TIME, "values": {"systolic": 185}})
     assert again.status_code == 409
 
 

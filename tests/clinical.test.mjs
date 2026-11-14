@@ -12,7 +12,8 @@ import { indicatorTrend, renderIndicators } from '../src/ui/components/key-indic
 import { renderFindings } from '../src/ui/components/findings-card.js';
 const readJSON = file => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8').replace(/^\uFEFF/, ''));
 const config = readJSON('../src/config/indicators.json');
-const rules = readJSON('../src/config/finding-rules.json');
+// Reglas v1 congeladas: prueban la semántica del motor, no el contenido clínico de src/config.
+const rules = readJSON('./fixtures/finding-rules.v1.json');
 const systolic = config.indicators.find(item => item.field === 'systolic');
 const record = (value, date, unit) => ({ value, date, ...(unit ? { unit } : {}) });
 const patient = measurements => ({ id: 'test', measurements });

@@ -13,7 +13,7 @@ function sidebar() {
     '<a class="brand" href="#" aria-label="Cardia, inicio"><span class="brand-symbol">' + icon('activity') + '</span><span>cardia<span class="brand-dot">.</span></span></a>' +
     '<div class="nav-label">ESPACIO CLÍNICO</div>' +
     '<nav aria-label="Navegación principal">' +
-    navItem('patients', 'users', 'Pacientes', '<span class="nav-count">24</span>') +
+    navItem('patients', 'users', 'Pacientes', '<span class="nav-count">' + new Intl.NumberFormat('es-ES').format(getPatients().length) + '</span>') +
     navItem('priority', 'heart', 'Prioridad clínica', '<span class="priority-count">' + getPatients().filter(p => effectiveRiskLevel(p) === 'high').length + '</span>') +
     navItem('followup', 'bookmark', 'En seguimiento', '') +
     '</nav></aside>';

@@ -47,7 +47,7 @@ export function chartPicker(p, state) {
 export function chartData(p, state) {
   const definition = chartOption(state.chart);
   let series = getSeries(p, definition);
-  if (series.length) {
+  if (series.length && state.period !== 'all') {
     const cutoff = new Date(series.at(-1).time);
     cutoff.setUTCMonth(cutoff.getUTCMonth() - Number(state.period));
     series = series.filter(point => point.time >= cutoff.getTime());

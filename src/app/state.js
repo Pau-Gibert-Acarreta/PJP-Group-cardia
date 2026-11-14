@@ -10,7 +10,7 @@ export const state = {
   nav: 'patients',     // patients | priority | followup
   topK: 3,             // variables explicativas visibles en la ficha
   chart: 'ldl',        // clave de CHART_OPTIONS (ui/components/chart.js)
-  period: '12',        // meses de la gráfica
+  period: 'all',       // meses de la gráfica ('6', '12') o 'all': los exámenes del estudio están separados años
   drafts: {},          // borradores de notas por paciente
   noteEditing: null    // id de la nota en edición
 };

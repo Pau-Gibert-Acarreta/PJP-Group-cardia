@@ -1,11 +1,11 @@
 // Ajuste clínico de la clasificación de riesgo (alto, medio, bajo).
 // El médico puede cambiar la clasificación, nunca la probabilidad calculada por el modelo.
 //
-// HOY: los ajustes se guardan en localStorage.
-// MAÑANA (backend): guardarlos con api.setRiskClassification / api.clearRiskClassification (api-client.js),
-// para que queden registrados con autor, fecha y motivo.
+// HOY: los ajustes se guardan en localStorage, porque el riesgo que ajustan es simulado.
+// MAÑANA (con el modelo de ML): guardarlos con api.setRiskClassification / api.clearRiskClassification
+// (api-client.js); el backend ya registra autor, fecha y motivo en risk_classification_override.
 import { riskLevel, RISK_LEVELS } from '../domain/risk.js';
-import { getPatients, findPatient } from './patient-service.js';
+import { findPatient } from './patient-service.js';
 import { readStorage, saveStorage, STORAGE_KEYS } from './storage.js';
 
 const CLINICIAN = 'Dra. Carmen Vidal';
@@ -15,8 +15,10 @@ const overrides = stored && typeof stored === 'object' && !Array.isArray(stored)
 
 const isValid = o => o && RISK_LEVELS.includes(o.level) && typeof o.reason === 'string' && typeof o.date === 'string';
 
-// Aplica los ajustes guardados a los pacientes al cargar la app.
-getPatients().forEach(p => { if (isValid(overrides[p.id])) p.riskOverride = overrides[p.id]; });
+// Aplica los ajustes guardados a los pacientes recién cargados.
+export function applyStoredRiskOverrides(patients) {
+  patients.forEach(p => { if (isValid(overrides[p.id])) p.riskOverride = overrides[p.id]; });
+}
 
 const persist = () => saveStorage(STORAGE_KEYS.riskOverrides, overrides);
 

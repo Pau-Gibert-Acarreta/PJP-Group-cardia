@@ -16,13 +16,14 @@ src/
 │   ├── events.js          Listeners del navegador (clic, input, change, submit, hashchange)
 │   └── bootstrap.js       Carga la configuración y pinta la app
 ├── services/              Acceso a datos: la única capa que sabe de dónde vienen
-│   ├── patient-service.js Pacientes y seguimiento
-│   ├── notes-service.js   Notas de consulta
+│   ├── patient-service.js Pacientes (cupo y ficha) y seguimiento, desde la API
+│   ├── patient-adapter.js Paciente de la API → objeto de las vistas (+ riesgo simulado)
+│   ├── notes-service.js   Notas de consulta, desde la API
 │   ├── risk-service.js    Ajuste clínico de la clasificación de riesgo
 │   ├── config-service.js  Carga y validación de src/config/*.json
 │   ├── export-service.js  Exportación CSV del listado
 │   ├── storage.js         localStorage tolerante a fallos
-│   └── api-client.js      Cliente HTTP del backend (preparado, aún sin usar)
+│   └── api-client.js      Cliente HTTP del Core Backend API
 ├── domain/                Lógica clínica pura: sin DOM, testeable con Node
 │   ├── risk.js            Niveles del semáforo y clasificación final (modelo o ajuste clínico)
 │   ├── patient-filters.js Búsqueda, filtros y orden del listado
@@ -31,7 +32,7 @@ src/
 │   ├── kdigo.js           Categorías G/A de KDIGO
 │   ├── indicator-status.js Colores por rango y dirección del cambio
 │   └── clinical-config.js Validación de la configuración
-├── data/demo/             Pacientes y mediciones ficticios (se sustituirán por el backend)
+├── data/demo/             Riesgo simulado y pacientes de ejemplo para las pruebas
 ├── config/                Indicadores, rangos de color y reglas (editables sin tocar código)
 ├── ui/                    Todo lo que genera HTML
 │   ├── views/             Pantallas completas: layout, listado, ficha, estados
@@ -67,12 +68,27 @@ Para añadir un botón nuevo: pon `data-action="mi-accion"` en el HTML y añade 
 
 ## Conectar el backend
 
-Hoy los datos salen de `data/demo/` y los cambios se guardan en `localStorage`. Para integrarlo con el backend:
+El frontend está conectado al Core Backend API (`backend/`). `scripts/serve.mjs` reenvía `/api/*` al backend, así que `services/api-client.js` usa rutas relativas.
 
-1. Ajusta los endpoints de `services/api-client.js` al contrato real (`API_BASE_URL` y rutas).
-2. Cambia el interior de `services/patient-service.js` y `services/notes-service.js` para que llamen a `api`. Las vistas no cambian mientras las funciones devuelvan pacientes con el formato de [data-contract.md](data-contract.md) (`patient.measurements[field] = [{ value, date, unit }]`).
-3. Las llamadas al backend son asíncronas. Cuando se conecten, `bootstrap.js` deberá esperar a que lleguen los pacientes (`await`) antes de pintar, igual que ya hace con la configuración clínica.
-4. Los resultados de los modelos de riesgo (SCORE2, SCORE2-OP, KFRE, modelo propio) llegarán por `api.getRiskAssessments` y sustituirán a `p.risk` y `p.factors`, que hoy son simulados.
+| Dato | De dónde sale |
+| --- | --- |
+| Identidad, contacto, edad, sexo, antecedentes | `GET /api/v1/patients` (listado) y `GET /api/v1/patients/{id}` (contacto) |
+| Mediciones | Listado completo con `include_measurements=true` |
+| Línea temporal y notas | Ficha (`GET /patients/{id}`), pedida al abrir el paciente |
+| Seguimiento | `PUT /patients/{id}/followup` |
+| Notas nuevas o editadas | `POST /patients/{id}/notes`, `PUT /patients/{id}/notes/{noteId}` |
+| Riesgo, factores e historial de riesgo | Simulados: `data/demo/simulated-risk.js` |
+| Ajuste de la clasificación de riesgo | `localStorage` (`services/risk-service.js`) |
+| Hallazgos | Calculados en el navegador (`domain/findings.js`) con `finding-rules.json` |
+
+Flujo:
+
+1. `bootstrap.js` carga la configuración y el cupo completo (`patient-service.loadPatients`). El listado filtra, ordena y cuenta en el navegador, como antes.
+2. `services/patient-adapter.js` convierte cada paciente de la API al objeto que usan las vistas y le añade el riesgo simulado.
+3. Al abrir una ficha, `render.js` pide los datos que faltan (`loadPatientDetail`) y pinta cuando llegan.
+4. Si falla el servidor, se muestra un error con «Reintentar»; si falla una nota o el seguimiento, un aviso, y no se pierde lo escrito.
+
+Cuando exista el Motor de Riesgo (4B), `api.getRiskAssessments` sustituirá a `simulateRisk` en el adaptador, y el ajuste de clasificación pasará a `api.setRiskClassification`, que el backend ya guarda con autor, fecha y motivo.
 
 ## Ajuste clínico de la clasificación de riesgo
 

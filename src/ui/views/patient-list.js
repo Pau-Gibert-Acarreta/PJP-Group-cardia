@@ -16,6 +16,9 @@ const HEADINGS = {
 
 const CONDITIONS = ['Hipertensión', 'Diabetes tipo 2', 'Enf. renal crónica', 'Dislipidemia', 'Tabaquismo'];
 
+// Contadores con separador de miles (4.434).
+const count = n => new Intl.NumberFormat('es-ES').format(n);
+
 const SORT_OPTIONS = [['risk-desc', 'Mayor riesgo primero'], ['risk-asc', 'Menor riesgo primero'], ['name', 'Nombre: A–Z'], ['age', 'Mayor edad primero'], ['recent', 'Analítica más reciente']];
 
 function statCard(level, label, count, caption, glyph) {
@@ -37,12 +40,12 @@ function pageHeading() {
 }
 
 function summaryCards(patients) {
-  const count = level => patients.filter(p => effectiveRiskLevel(p) === level).length;
+  const byLevel = level => count(patients.filter(p => effectiveRiskLevel(p) === level).length);
   return '<section class="stats-grid" aria-label="Resumen del cupo">' +
-    statCard('all', 'Total de pacientes', patients.length, 'En tu cupo de demostración', 'users') +
-    statCard('high', 'Riesgo alto', count('high'), 'Prioriza su revisión', 'heart') +
-    statCard('medium', 'Riesgo medio', count('medium'), 'Observa su evolución', 'activity') +
-    statCard('low', 'Riesgo bajo', count('low'), 'Seguimiento habitual', 'shield') + '</section>';
+    statCard('all', 'Total de pacientes', count(patients.length), 'En tu cupo', 'users') +
+    statCard('high', 'Riesgo alto', byLevel('high'), 'Prioriza su revisión', 'heart') +
+    statCard('medium', 'Riesgo medio', byLevel('medium'), 'Observa su evolución', 'activity') +
+    statCard('low', 'Riesgo bajo', byLevel('low'), 'Seguimiento habitual', 'shield') + '</section>';
 }
 
 function filtersDropdown() {
@@ -57,10 +60,10 @@ function filtersDropdown() {
 
 function patientPanel(patients) {
   return '<section class="patient-panel">' +
-    '<div class="panel-heading"><div><h2>Listado de pacientes <span class="count-pill" id="result-count">24</span></h2><p>La información que necesitas para saber por dónde empezar.</p></div>' +
+    '<div class="panel-heading"><div><h2>Listado de pacientes <span class="count-pill" id="result-count">' + count(patients.length) + '</span></h2><p>La información que necesitas para saber por dónde empezar.</p></div>' +
     '<button class="button secondary export-button" data-action="export">' + icon('download') + ' Exportar listado</button></div>' +
     '<div class="list-tabs">' +
-    '<button data-action="tab" data-tab="all" class="' + (!state.filters.followupOnly ? 'selected' : '') + '">Todos los pacientes <span>24</span></button>' +
+    '<button data-action="tab" data-tab="all" class="' + (!state.filters.followupOnly ? 'selected' : '') + '">Todos los pacientes <span>' + count(patients.length) + '</span></button>' +
     '<button data-action="tab" data-tab="followup" class="' + (state.filters.followupOnly ? 'selected' : '') + '">En seguimiento <span id="followup-count">' + patients.filter(p => p.followup).length + '</span></button></div>' +
     '<div class="toolbar"><label class="search-field">' + icon('search') + '<input id="patient-search" type="search" placeholder="Buscar por nombre o identificador…" aria-label="Buscar pacientes" value="' + esc(state.filters.search) + '"></label>' +
     filtersDropdown() +
@@ -79,11 +82,21 @@ export function renderList() {
   updateResults();
 }
 
+// Páginas visibles: la primera, la última y dos a cada lado de la actual, con "…" entre huecos.
+export function pageWindow(current, pages) {
+  const wanted = new Set([1, pages, current - 2, current - 1, current, current + 1, current + 2]);
+  const list = [...wanted].filter(n => n >= 1 && n <= pages).sort((a, b) => a - b);
+  return list.flatMap((n, i) => (i && n - list[i - 1] > 1 ? ['gap', n] : [n]));
+}
+
 function pagination(items, start) {
   const pages = Math.ceil(items.length / state.perPage);
-  return '<div class="pagination"><span>Mostrando <strong>' + (start + 1) + '–' + Math.min(start + state.perPage, items.length) + '</strong> de <strong>' + items.length + '</strong> pacientes</span><div>' +
+  const pageButton = n => n === 'gap'
+    ? '<span class="page-gap" aria-hidden="true">…</span>'
+    : '<button class="page-number ' + (state.page === n ? 'current' : '') + '" data-action="page" data-page="' + n + '" aria-label="Página ' + n + '" ' + (state.page === n ? 'aria-current="page"' : '') + '>' + n + '</button>';
+  return '<div class="pagination"><span>Mostrando <strong>' + count(start + 1) + '–' + count(Math.min(start + state.perPage, items.length)) + '</strong> de <strong>' + count(items.length) + '</strong> pacientes</span><div>' +
     '<button class="icon-button" aria-label="Página anterior" data-action="page" data-page="' + (state.page - 1) + '" ' + (state.page === 1 ? 'disabled' : '') + '>' + icon('arrow') + '</button>' +
-    Array.from({ length: pages }, (_, i) => '<button class="page-number ' + (state.page === i + 1 ? 'current' : '') + '" data-action="page" data-page="' + (i + 1) + '" aria-label="Página ' + (i + 1) + '" ' + (state.page === i + 1 ? 'aria-current="page"' : '') + '>' + (i + 1) + '</button>').join('') +
+    pageWindow(state.page, pages).map(pageButton).join('') +
     '<button class="icon-button" aria-label="Página siguiente" data-action="page" data-page="' + (state.page + 1) + '" ' + (start + state.perPage >= items.length ? 'disabled' : '') + '>' + icon('chevron') + '</button></div></div>';
 }
 
@@ -97,7 +110,7 @@ export function updateResults() {
   const items = selectPatients(patients, state.filters);
   state.page = Math.max(1, Math.min(state.page, Math.ceil(items.length / state.perPage)));
   const start = (state.page - 1) * state.perPage;
-  $('#result-count').textContent = items.length; $('#followup-count').textContent = patients.filter(p => p.followup).length;
+  $('#result-count').textContent = count(items.length); $('#followup-count').textContent = count(patients.filter(p => p.followup).length);
   document.querySelectorAll('.stat-card').forEach(el => { const selected = el.dataset.risk === state.filters.risk; el.classList.toggle('stat-selected', selected); el.setAttribute('aria-pressed', selected); });
   document.querySelectorAll('.list-tabs button').forEach(el => el.classList.toggle('selected', (el.dataset.tab === 'followup') === state.filters.followupOnly));
   const filters = ['risk', 'sex', 'age', 'condition'].filter(k => state.filters[k] !== 'all');

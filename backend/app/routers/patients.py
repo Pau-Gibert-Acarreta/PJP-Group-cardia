@@ -1,6 +1,7 @@
 """Endpoints que consume el frontend (src/services/api-client.js)."""
 from __future__ import annotations
 
+import json
 from datetime import datetime, timedelta, timezone
 from typing import Literal
 from uuid import UUID
@@ -26,13 +27,16 @@ def list_patients(
     age: Literal["65plus", "under65"] | None = None,
     followup: bool | None = None,
     sort: Literal["risk-desc", "risk-asc", "name", "age", "recent"] = "risk-desc",
-    limit: int = Query(50, ge=1, le=500),
+    limit: int = Query(50, ge=1, le=5_000, description="Hasta 5.000: el frontend carga el cupo completo"),
     offset: int = Query(0, ge=0),
     include_measurements: bool = Query(True, description="Añade measurements a cada paciente de la página"),
 ):
-    return patients_service.list_patients(
+    result = patients_service.list_patients(
         conn, q=q, risk=risk, sex=sex, condition=condition, age=age, followup=followup,
         sort=sort, limit=limit, offset=offset, include_measurements=include_measurements)
+    # Todo son tipos JSON nativos: se evita jsonable_encoder, que con el cupo completo
+    # (~12 MB) tardaba más que la consulta.
+    return Response(json.dumps(result, ensure_ascii=False), media_type="application/json")
 
 
 @router.get("/{patient_id}")
