@@ -14,6 +14,13 @@ Abre [http://localhost:5173](http://localhost:5173). No hace falta instalar paqu
 
 En Windows, si el repositorio está en una ruta UNC de WSL, ejecuta directamente `node scripts/serve.mjs` desde PowerShell; así evitas la restricción de rutas UNC de CMD al ejecutar scripts npm. Desde WSL necesitas una instalación de Node disponible en esa distribución.
 
+## Backend y datos
+
+- [db/](db/README.md): esquema PostgreSQL + TimescaleDB + pgvector, carga de `raw.csv` y datos sintéticos.
+- [backend/](backend/README.md): Core Backend API (FastAPI) con los endpoints del frontend, el motor de reglas (`finding-rules.json`) y la API interna para los servicios de ML.
+
+El frontend todavía usa los datos de demostración; conectarlo consiste en que `src/services/` llame a `src/services/api-client.js`.
+
 ## Configuración clínica
 
 - [Indicadores y columnas](src/config/indicators.json): nombres, claves de datos, unidades, decimales, orden de las filas y columnas del resumen.
