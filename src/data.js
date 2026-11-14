@@ -1,3 +1,4 @@
+import { makeDemoMeasurements } from './demo-measurements.js';
 // Registros ficticios para la demo. No representan un modelo clínico.
 export const DEMO_DATE = '2026-11-14';
 export const RISK_LABELS = { high: 'Alto', medium: 'Medio', low: 'Bajo' };
@@ -44,7 +45,7 @@ export const patients = records.map(([firstName, lastName, age, sex, risk, condi
     hba1c: [hba1c + .7, hba1c + .4, hba1c + .6, hba1c + .2, hba1c + .3, hba1c].map(v => +v.toFixed(1)),
     risk: [risk - 4.8, risk - 3.1, risk - 3.9, risk - 1.2, risk - 1.8, risk].map(v => Math.max(1, +v.toFixed(1)))
   };
-  return {
+  const patient = {
     id: 'p' + String(i + 1).padStart(3, '0'), firstName, lastName, name: firstName + ' ' + lastName, age, sex, risk,
     cip: 'DEMO-' + String(10001 + i), conditions, followup, lastTest, initials: firstName[0] + lastName[0],
     phone: '600 000 000', email: normalize(firstName) + '.demo@example.test',
@@ -66,6 +67,10 @@ export const patients = records.map(([firstName, lastName, age, sex, risk, condi
     ],
     notes: [{ id: 'seed-' + i, date: lastTest + 'T09:30:00', author: 'Dra. Carmen Vidal', text: i === 0 ? 'Se revisan los resultados de la última analítica con la paciente. Refiere buena adherencia al tratamiento. Acordamos registrar la presión arterial en casa y revisar la evolución en la próxima consulta.' : 'Revisión de resultados y antecedentes cardiovasculares. Se registra la evolución para el seguimiento en consulta.' }]
   };
+  patient.measurements = makeDemoMeasurements(patient, i);
+  patient.history.pressure = patient.measurements.systolic.map(point => point.value);
+  patient.history.hba1c = patient.measurements.hba1c.map(point => point.value);
+  return patient;
 });
 export function selectPatients(items, filters) {
   const query = normalize(filters.search || '');
