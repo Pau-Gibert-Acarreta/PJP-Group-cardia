@@ -1,7 +1,7 @@
 """Analíticas PDF: generación desde la base de datos, parser, ingesta y endpoints.
 
-Requieren la base de datos cargada; si no está, se omiten. Todo se genera en una
-carpeta temporal y se borra al final (documentos de los pacientes de prueba incluidos).
+Requieren la base de datos cargada; si no está, se omiten. Los PDF se generan en una
+carpeta temporal; al final, los pacientes de prueba vuelven a quedar con sus informes.
 """
 from datetime import date
 
@@ -42,7 +42,11 @@ def pdfs(tmp_path_factory):
     _cleanup(conn)
     paths = generar(conn, PIDS, folder)
     yield folder, paths, conn
+    # Deja a los pacientes como estaban: con sus informes ingestados (mismos bytes que los de
+    # data/landing, así que la ingesta completa los seguirá considerando ya existentes).
     _cleanup(conn)
+    ingest_folder(conn, folder)
+    conn.commit()
     conn.close()
 
 
