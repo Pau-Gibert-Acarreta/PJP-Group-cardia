@@ -17,6 +17,7 @@ Uso (desde backend/):
     uv run python -m app.jobs.generate_lab_reports 2448 6238      # pacientes concretos
     uv run python -m app.jobs.generate_lab_reports --all           # todo el cupo (~11.600 PDF)
     uv run python -m app.jobs.generate_lab_reports --all --limit 100
+    uv run python -m app.jobs.generate_lab_reports --all --skip-existing   # solo los que faltan
 Salida por defecto: data/landing/lab_reports/<RANDID>/ (ignorada en git).
 """
 from __future__ import annotations
@@ -384,7 +385,7 @@ def generar_pdf(paciente, examen, examen_n, total_examenes, carpeta, anteriores)
                      "respecto al último valor anterior de esa prueba en las analíticas del paciente. ")
     else:
         tendencia = "Es la primera analítica registrada del paciente, por lo que no se muestra tendencia. "
-    ruta = carpeta / f"analitica_{randid}_periodo{periodo}_{fecha.isoformat()}.pdf"
+    ruta = carpeta / nombre_pdf(paciente, examen)
 
     doc = SimpleDocTemplate(str(ruta), pagesize=A4, leftMargin=15 * mm, rightMargin=15 * mm,
                             topMargin=14 * mm, bottomMargin=24 * mm,
@@ -402,13 +403,21 @@ def generar_pdf(paciente, examen, examen_n, total_examenes, carpeta, anteriores)
     return ruta
 
 
-def generar(conn, randids: list[int] | None, salida: Path, limit: int | None = None) -> list[Path]:
+def nombre_pdf(paciente, examen) -> str:
+    return f"analitica_{paciente['patient_id']}_periodo{examen['period']}_{examen['exam_time'].date().isoformat()}.pdf"
+
+
+def generar(conn, randids: list[int] | None, salida: Path, limit: int | None = None,
+            solo_nuevos: bool = False) -> list[Path]:
+    """Genera los PDF; con solo_nuevos, salta los que ya existen (la generación es determinista)."""
     rutas = []
     for item in leer_pacientes(conn, randids, limit):
         paciente, examenes = item["patient"], item["exams"]
         carpeta = salida / str(paciente["patient_id"])
         carpeta.mkdir(parents=True, exist_ok=True)
         for n, examen in enumerate(examenes, start=1):
+            if solo_nuevos and (carpeta / nombre_pdf(paciente, examen)).exists():
+                continue
             rutas.append(generar_pdf(paciente, examen, n, len(examenes), carpeta, examenes[:n - 1]))
     return rutas
 
@@ -419,13 +428,14 @@ def main() -> int:
     parser.add_argument("--all", action="store_true", help="Todo el cupo")
     parser.add_argument("--limit", type=int, help="Con --all: solo los N primeros pacientes")
     parser.add_argument("--out", type=Path, default=SALIDA, help=f"Carpeta de salida (por defecto {SALIDA})")
+    parser.add_argument("--skip-existing", action="store_true", help="No regenera los PDF que ya existen")
     args = parser.parse_args()
     if not args.randid and not args.all:
         parser.error("Indica uno o varios RANDID o --all")
     inicio = time.perf_counter()
     with psycopg.connect(get_settings().database_url, row_factory=dict_row) as conn:
         conn.execute("SET search_path = cardia, public")
-        rutas = generar(conn, args.randid or None, args.out, args.limit)
+        rutas = generar(conn, args.randid or None, args.out, args.limit, solo_nuevos=args.skip_existing)
     print(f"{len(rutas)} PDF generados en {args.out} ({time.perf_counter() - inicio:.1f} s)")
     return 0
 
