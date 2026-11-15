@@ -6,7 +6,7 @@ Prototipo de una consulta de Atención Primaria para explorar el riesgo cardiova
 
 Hacen falta tres piezas en marcha:
 
-1. La base de datos cargada: ver [db/README.md](db/README.md).
+1. La base de datos cargada con el ETL (`build_sources` una vez y `load_sources --reset`): ver [db/README.md](db/README.md).
 2. El backend (Python 3.11+ y [uv](https://docs.astral.sh/uv/)):
 
    ```sh
@@ -26,7 +26,7 @@ En Windows, si el repositorio está en una ruta UNC de WSL, ejecuta directamente
 
 ## Backend y datos
 
-- [db/](db/README.md): esquema PostgreSQL + TimescaleDB + pgvector, carga de `raw.csv` y datos sintéticos.
+- [db/](db/README.md): esquema PostgreSQL + TimescaleDB + pgvector; fuentes de datos separadas por origen y ETL que las carga.
 - [backend/](backend/README.md): Core Backend API (FastAPI) con los endpoints del frontend, el motor de reglas (`finding-rules.json`) y la API interna para los servicios de ML.
 
 El frontend lee del backend los datos de la base de datos: identidad, contacto, antecedentes, mediciones, línea temporal, notas y seguimiento. El riesgo de ML y sus variables explicativas siguen simulados en el navegador (`src/data/demo/simulated-risk.js`) hasta que exista el modelo.

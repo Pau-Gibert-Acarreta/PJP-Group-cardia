@@ -13,3 +13,7 @@ __pycache__/
 /data/landing/**
 !/data/landing/**/
 !/data/landing/**/.gitkeep
+
+# Fuentes construidas a partir de raw.csv (backend: python -m app.jobs.build_sources): no se versionan
+/data/sources/*
+!/data/sources/.gitkeep

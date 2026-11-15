@@ -1,7 +1,7 @@
 -- =============================================================================
 -- Cardia · Smoke test for the data layer
 --
--- Run after 001_schema.sql, 002_load_raw_csv.sql (and optionally 004/005):
+-- Run after loading the data (backend: python -m app.jobs.load_sources --reset):
 --   psql -d cardia -v ON_ERROR_STOP=1 -f db/003_smoke_test.sql
 --
 -- Stops at the first failed check. Everything runs in one transaction that is
@@ -17,8 +17,13 @@ BEGIN
     ASSERT (SELECT count(*) FROM patient)         = 4434,  'patient: expected 4434 rows';
     ASSERT (SELECT count(*) FROM patient_outcome) = 4434,  'patient_outcome: expected 4434 rows';
     ASSERT (SELECT count(*) FROM exam)            = 11627, 'exam: expected 11627 rows';
-    ASSERT (SELECT count(*) FROM measurement WHERE source = 'exam') = 73908,
+    ASSERT (SELECT count(*) FROM measurement WHERE indicator_code IN
+            ('systolic', 'diastolic', 'heart_rate', 'bmi', 'total_cholesterol', 'hdl_cholesterol', 'ldl', 'glucose')) = 73908,
            'measurement: expected 73908 non-missing values from raw.csv';
+    ASSERT (SELECT count(*) FROM measurement WHERE indicator_code IN ('hba1c', 'serum_creatinine', 'egfr', 'acr'))
+           = 4 * 11627, 'measurement: expected 4 synthetic lab values per exam';
+    ASSERT (SELECT count(*) FROM ingestion_batch WHERE source_uri LIKE 'file://data/sources/%') = 6,
+           'ingestion_batch: expected one batch per source';
     ASSERT (SELECT count(*) FROM exam_features)   = 11627, 'exam_features: expected one row per exam';
     ASSERT (SELECT count(*) FROM patient_overview) = 4434, 'patient_overview: expected one row per patient';
     ASSERT NOT EXISTS (SELECT 1 FROM exam GROUP BY patient_id, period HAVING count(*) > 1),

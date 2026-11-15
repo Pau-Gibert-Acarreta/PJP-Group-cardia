@@ -6,7 +6,7 @@ maquetación y su simulación de las pruebas que no están en la base de datos, 
 
 - Paciente: nombre, CIP y sexo (`patient`); edad, periodo y fecha del examen (`exam`).
 - Glucosa, colesterol total, HDL y LDL: valores originales de Framingham (`measurement`).
-- HbA1c, creatinina, eGFR y ACR: los valores sintéticos de db/004_synthetic_fill.sql (`measurement`).
+- HbA1c, creatinina, eGFR y ACR: los valores sintéticos generados en app/etl/sources.py (`measurement`).
 - Hemograma, urea, iones, perfil hepático, triglicéridos y orina (salvo ACR): no existen en la
   base de datos; se simulan aquí de forma reproducible, solo para que el informe sea realista.
   La ingesta no los guarda como mediciones.

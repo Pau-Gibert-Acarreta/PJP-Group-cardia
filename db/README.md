@@ -5,56 +5,56 @@ Schema for block 2 of the architecture ("Capa de Datos"): PostgreSQL + Timescale
 | File | Purpose |
 | --- | --- |
 | `001_schema.sql` | Tables, hypertables, HNSW index and read views. |
-| `002_load_raw_csv.sql` | Loads `data/raw.csv` into the schema. |
-| `004_synthetic_fill.sql` | Fills the fields the frontend needs but `raw.csv` lacks with fake data (see below). Optional. |
 | `005_knn.sql` | Vector of 20 dimensions and `embedding_model` for the KNN of similar patients. |
 | `003_smoke_test.sql` | Checks the load, hypertables, pgvector, constraints and views; rolls back. |
 
+The data is no longer loaded with SQL scripts: an ETL in `backend/` builds separate sources from `raw.csv` and loads them (the old `002_load_raw_csv.sql` and `004_synthetic_fill.sql` were retired; the ETL reproduces exactly the database they produced).
+
 ```sh
-createdb cardia
-psql -d cardia -v ON_ERROR_STOP=1 -f db/001_schema.sql
-psql -d cardia -v ON_ERROR_STOP=1 -v baseline=2013-01-01 -f db/002_load_raw_csv.sql
-psql -d cardia -v ON_ERROR_STOP=1 -f db/004_synthetic_fill.sql   # optional, demo data
-psql -d cardia -v ON_ERROR_STOP=1 -f db/005_knn.sql
-psql -d cardia -v ON_ERROR_STOP=1 -f db/003_smoke_test.sql
+# From backend/ (data/raw.csv must exist; it is not in git)
+uv run python -m app.jobs.build_sources          # once: raw.csv + synthetic data -> data/sources/*.csv
+uv run python -m app.jobs.load_sources --reset   # empties the database, recreates 001 + 005 and loads the sources
+uv run python -m app.jobs.evaluate_findings      # rule engine
+uv run python -m app.jobs.build_knn_index        # similar patients
+uv run python -m app.jobs.generate_lab_reports --all && uv run python -m app.jobs.ingest_lab_reports   # PDFs (~15 min)
+
+# From the repository root
+docker exec cardia-db psql -U postgres -d cardia -v ON_ERROR_STOP=1 -f db/003_smoke_test.sql
 ```
 
-## Where each raw.csv column goes
+## Data sources (`data/sources/`, built by `app/etl/sources.py`)
 
-`raw.csv` is the Framingham longitudinal dataset: 11,627 rows, 4,434 patients, 1 to 3 exams each (`RANDID` × `PERIOD`).
+`raw.csv` is the Framingham longitudinal dataset: 11,627 rows, 4,434 patients, 1 to 3 exams each (`RANDID` × `PERIOD`). It is split by the system each value would come from in a real centre, and the synthetic data is generated there. The sources keep the study codes (sex 1/2, flags 0/1) and the study day (`TIME`); the ETL does the transformations. Neither `raw.csv` nor the sources are in git.
 
-`data/raw.csv` is not in git (see `.gitignore`). Copy it into `data/` locally before running the loader.
+| Source | Simulated system | Shape | Content |
+| --- | --- | --- | --- |
+| `ehr_patients.csv` | Health record | one row per patient | `SEX`, `educ` + synthetic identity: name, CIP (`SYN` + RANDID), phone, email (`@example.test`) |
+| `ehr_visits.csv` | Health record | one row per visit | `PERIOD`, `TIME`, `AGE`, `CURSMOKE`, `CIGPDAY`, `BPMEDS`, `DIABETES`, `PREVCHD`, `PREVAP`, `PREVMI`, `PREVSTRK`, `PREVHYP` |
+| `data_pressure.csv` | Vital signs monitor | wide, one row per reading | `SYSBP`, `DIABP`, `HEARTRTE`, `BMI` |
+| `data_blood.csv` | Laboratory (LIS), blood | long, one row per result, LOINC | `GLUCOSE` (2345-7), `TOTCHOL` (2093-3), `HDLC` (2085-9), `LDLC` (13457-7) + synthetic HbA1c (4548-4) and creatinine (2160-0) |
+| `data_urine.csv` | Laboratory (LIS), urine | long, LOINC | synthetic albumin/creatinine ratio (9318-7) |
+| `registry_outcomes.csv` | Follow-up registry | one row per patient | `DEATH` … `TIMEHYP` (24-year outcomes, training labels only) |
 
-| Destination | Raw columns | Why |
-| --- | --- | --- |
-| `patient` (static) | `RANDID`, `SEX`, `educ` | Identical on every row of a patient. |
-| `patient` (derived) | `AGE` at period 1 → `birth_year` | Age changes between exams, birth year does not. |
-| `patient_outcome` (static, labels) | `DEATH`, `ANGINA`, `HOSPMI`, `MI_FCHD`, `ANYCHD`, `STROKE`, `CVD`, `HYPERTEN`, `TIMEDTH`, `TIMEAP`, `TIMEMI`, `TIMEMIFC`, `TIMECHD`, `TIMESTRK`, `TIMECVD`, `TIMEHYP` | Constant per patient, but they describe the 24-year follow-up. Training labels only. |
-| `exam` (hypertable) | `TIME`, `PERIOD`, `AGE`, `CURSMOKE`, `CIGPDAY`, `BPMEDS`, `DIABETES`, `PREVCHD`, `PREVAP`, `PREVMI`, `PREVSTRK`, `PREVHYP` | Status and questionnaire answers that change between exams. |
-| `measurement` (hypertable) | `SYSBP`, `DIABP`, `HEARTRTE`, `BMI`, `TOTCHOL`, `HDLC`, `LDLC`, `GLUCOSE` | Numeric series, one row per value. Missing values are not stored. |
+Synthetic values (deterministic, from `md5(patient_id + key)`):
 
-Timestamps are `patient.baseline_date + TIME days`. The source has no calendar dates, so `baseline_date` is set by the loader (`-v baseline=...`). Use 2013-01-01: `TIME` reaches 4,854 days, so a later baseline puts some exams in the future.
-
-## Synthetic data (`004_synthetic_fill.sql`)
-
-`raw.csv` is anonymised and has no kidney or HbA1c labs, but the frontend shows them. This script fills only those gaps, with **fake** values:
-
-| Target | Fields | How |
-| --- | --- | --- |
-| `patient` | `first_name`, `last_name` | Spanish first name matching `sex`, two surnames. |
-| `patient` | `cip` | `SYN` + zero-padded `RANDID` (for example `SYN0002448`), so it is unique and obviously fake. |
-| `patient` | `phone`, `email` | `6XX XXX XXX`; `name.surname.RANDID@example.test` (reserved domain, never delivers). |
-| `measurement` | `hba1c` | One per exam. Diabetic: from the exam's glucose (ADAG), at least 6.5 %. Otherwise about 5.3 %, nudged by glucose and age. |
-| `measurement` | `serum_creatinine` | One per exam. Sex baseline, rising with age, hypertension and diabetes. |
-| `measurement` | `egfr` | Computed from that creatinine with CKD-EPI 2021, so the two always agree. |
-| `measurement` | `acr` | Log-normal around 8 mg/g, higher with diabetes, hypertension and systolic ≥ 140. |
-
-- Documents, OCR output and every other table are not touched.
-- Values come from `md5(patient_id)`, not `random()`, so every run gives the same data.
-- Safe to re-run: it fills only empty patient fields and skips measurements that already exist.
-- Synthetic measurements have `source = 'lab'` and point to the `ingestion_batch` with `source_uri = 'synthetic://004_synthetic_fill'`. To remove them:
-  `DELETE FROM cardia.measurement WHERE source = 'lab' AND indicator_code IN ('hba1c','serum_creatinine','egfr','acr');`
+- HbA1c: diabetic, from the visit's glucose (ADAG), at least 6.5 %; otherwise about 5.3 %, nudged by glucose and age.
+- Creatinine: sex baseline, rising with age, hypertension and diabetes.
+- ACR: log-normal around 8 mg/g, higher with diabetes, hypertension and systolic ≥ 140.
 - The phone numbers are random and could belong to real people, so never call or text them from the app.
+
+## ETL (`app/etl/load.py`)
+
+| Transformation | Detail |
+| --- | --- |
+| Dates | `baseline_date + study day` at UTC midnight (`--baseline`, default 2013-01-01; `TIME` reaches 4,854 days, so a later baseline puts exams in the future). |
+| Patient | sex 1/2 → M/F; `birth_year` = baseline year − age at the first visit. |
+| Flags | 0/1 → boolean; empty → NULL. |
+| Measurements | one row per present value, missing values are not stored; vitals `source = 'exam'`, laboratory `source = 'lab'`. |
+| Name normalisation | LOINC → `indicator.code`, checking the unit; an unknown code or unit aborts the load. |
+| Derived | eGFR from creatinine, age and sex with CKD-EPI 2021. |
+| Traceability | one `ingestion_batch` per source; every exam and measurement points to its batch. |
+
+The whole load runs in one transaction: any inconsistency leaves the database empty rather than half loaded.
 
 ## What the frontend reads
 
@@ -81,7 +81,7 @@ Each component is the z-score of a feature times `sqrt(weight)`, so pgvector's L
 - Values at the exam: `bmi`, `systolic`, `diastolic`, `heart_rate`, `total_cholesterol`, `hdl_cholesterol`, `glucose`.
 - Trends (change per year since the previous measurement): `systolic_trend`, `total_cholesterol_trend`, `bmi_trend`, `glucose_trend`.
 
-Only original Framingham variables are used: the synthetic labs from `004` (HbA1c, creatinine, eGFR, ACR) are left out.
+Only original Framingham variables are used: the synthetic labs (HbA1c, creatinine, eGFR, ACR) are left out.
 
 Changing features or weights means rebuilding the index; changing the number of features means changing the column dimension too.
 
