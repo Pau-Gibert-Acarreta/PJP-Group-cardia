@@ -80,7 +80,8 @@ El frontend está conectado al Core Backend API (`backend/`). `scripts/serve.mjs
 | Riesgo, factores e historial de riesgo | Simulados: `data/demo/simulated-risk.js` |
 | Ajuste de la clasificación de riesgo | `localStorage` (`services/risk-service.js`) |
 | Hallazgos | Calculados en el navegador (`domain/findings.js`) con `finding-rules.json` |
-| Informes PDF de las analíticas | `events[].documentId` → `GET /documents/{id}/content` (botón «Ver informe» del examen) |
+| Línea temporal | `GET /patients/{id}/events`: un evento por prueba (analítica, orina, constantes) con sus `results`; la ventana muestra solo esos valores |
+| Informes PDF de las analíticas | `events[].documentId` (solo en la analítica de sangre) → `GET /documents/{id}/content` |
 | Casos similares (KNN) | `GET /patients/{id}/similar`: sin la última prueba al abrir la ficha; con ella cuando el médico lo elige (`services/similar-service.js`, `ui/components/similar-cases.js`) |
 
 Flujo:

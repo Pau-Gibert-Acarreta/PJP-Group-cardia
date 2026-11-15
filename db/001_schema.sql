@@ -259,6 +259,9 @@ CREATE TABLE clinical_event (
                      ('exam', 'laboratory', 'exploration', 'treatment', 'history')),
     title        text        NOT NULL,
     description  text,
+    -- Tipo de prueba del evento (qué resultados muestra): analítica de sangre, orina o constantes.
+    -- NULL para eventos que no son pruebas (tratamiento, antecedentes...).
+    test_kind    text        CHECK (test_kind IN ('blood', 'urine', 'vitals')),
     document_id  uuid        REFERENCES document ON DELETE SET NULL
 );
 CREATE INDEX clinical_event_patient_idx ON clinical_event (patient_id, event_time DESC);

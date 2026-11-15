@@ -92,9 +92,13 @@ def test_ingest_links_and_is_idempotent(pdfs):
         SELECT count(*) AS n FROM measurement m JOIN document d ON d.document_id = m.document_id
         WHERE d.patient_id = 2448 AND m.indicator_code = 'hba1c'""").fetchone()["n"]
     assert linked == 2
-    event = conn.execute("""SELECT document_id FROM clinical_event
-                            WHERE patient_id = 19304 AND event_type = 'exam'""").fetchone()
-    assert event["document_id"] is not None
+    events = {r["test_kind"]: r["document_id"] for r in conn.execute(
+        "SELECT test_kind, document_id FROM clinical_event WHERE patient_id = 19304")}
+    assert events["blood"] is not None                                  # el PDF va con la analítica
+    assert events.get("vitals") is None and events.get("urine") is None  # tensión y orina, sin PDF
+    acr = conn.execute("""SELECT count(*) AS n FROM measurement m JOIN document d ON d.document_id = m.document_id
+                          WHERE d.patient_id = 2448 AND m.indicator_code = 'acr'""").fetchone()["n"]
+    assert acr == 0
 
 
 def test_ingest_rejects_values_that_do_not_match(pdfs, tmp_path):
@@ -129,6 +133,12 @@ def test_document_endpoints(pdfs):
         pdf = client.get(docs[0]["contentUrl"])
         assert pdf.status_code == 200 and pdf.headers["content-type"] == "application/pdf"
         assert pdf.content.startswith(b"%PDF") and "inline" in pdf.headers["content-disposition"]
-        event = next(e for e in client.get("/api/v1/patients/2448/events").json() if e["title"] == "Examen 3")
-        assert event["documentId"] == docs[0]["id"]
+        events = [e for e in client.get("/api/v1/patients/2448/events").json() if e["date"] == "2025-09-03"]
+        by_kind = {e["testKind"]: e for e in events}
+        assert set(by_kind) == {"blood", "vitals", "urine"}
+        assert by_kind["blood"]["documentId"] == docs[0]["id"]
+        assert by_kind["vitals"]["documentId"] is None and by_kind["urine"]["documentId"] is None
+        assert [r["field"] for r in by_kind["vitals"]["results"]] == ["systolic", "diastolic", "heart_rate"]
+        assert [r["field"] for r in by_kind["urine"]["results"]] == ["acr"]
+        assert "systolic" not in {r["field"] for r in by_kind["blood"]["results"]}
         assert client.get("/api/v1/documents/00000000-0000-0000-0000-000000000000").status_code == 404
