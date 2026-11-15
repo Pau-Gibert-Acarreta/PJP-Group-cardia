@@ -35,7 +35,7 @@ Los candidatos 27 y 38 empatan en CV (0,69478 frente a 0,69475); se usa el 38, e
 
 ## Cómo se usa
 
-Desde `ml/` (Python 3.11-3.13, [uv](https://docs.astral.sh/uv/)):
+Desde `ml/` (Python **3.12 o 3.13**, fijado en `.python-version`; [uv](https://docs.astral.sh/uv/) lo descarga si hace falta). El modelo congelado se guardó con scikit-learn 1.9.1 y scipy 1.18: con Python 3.11 se instala scipy 1.17 y el modelo no carga.
 
 ```sh
 uv sync

@@ -62,6 +62,17 @@ def load(version: str | None = None) -> LoadedModel:
     reg = registry()
     version = version or reg["champion"]
     entry = next(m for m in reg["models"] if m["version"] == version)
-    pipeline = joblib.load(MODELS_DIR / entry["file"])
+    try:
+        pipeline = joblib.load(MODELS_DIR / entry["file"])
+    except (AttributeError, ModuleNotFoundError, ImportError) as exc:
+        # El pickle depende de las versiones exactas de scikit-learn/scipy con que se guardó.
+        import platform
+        import scipy
+        import sklearn
+        raise RuntimeError(
+            f"No se puede cargar {entry['file']}: las librerías no coinciden con las del entrenamiento "
+            f"(Python {platform.python_version()}, scikit-learn {sklearn.__version__}, scipy {scipy.__version__}; "
+            f"hace falta Python 3.12+, scikit-learn 1.9.1 y scipy 1.18). Ejecuta 'uv sync' en ml/ "
+            f"o vuelve a lanzar setup.cmd / setup.sh. Detalle: {exc}") from exc
     background = pd.read_parquet(MODELS_DIR / entry["background"]) if entry.get("background") else None
     return LoadedModel(entry["name"], entry["version"], pipeline, entry.get("metrics", {}), background)
