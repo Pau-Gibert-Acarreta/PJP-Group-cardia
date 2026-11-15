@@ -106,12 +106,15 @@ def ingest_folder(conn: Connection, folder: Path, limit: int | None = None) -> I
         INSERT INTO ingestion_batch (source_kind, source_uri, rows_read) VALUES ('document', %s, %s)
         RETURNING batch_id
     """, [f"file://{folder.as_posix()}", len(files)]).fetchone()["batch_id"]
+    conn.commit()
     for path in files:
         try:
             with conn.transaction():          # un PDF rechazado no deshace los demás
                 ingest_file(conn, path, batch, stats)
         except Rejected as exc:
             stats.rejected.append((path.name, str(exc)))
+        # Commit por PDF: el progreso se ve en la app al momento y un corte no pierde lo ya ingestado.
+        conn.commit()
     conn.execute("""
         UPDATE ingestion_batch SET status = %s, finished_at = now(), rows_loaded = %s, error = %s
         WHERE batch_id = %s
