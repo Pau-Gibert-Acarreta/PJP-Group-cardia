@@ -14,8 +14,7 @@ import { toast } from '../ui/components/toast.js';
 import { closeModal } from '../ui/components/modal.js';
 import { chartPicker, chart } from '../ui/components/chart.js';
 import { updateResults } from '../ui/views/patient-list.js';
-import { renderPatient, mountSimilarCases } from '../ui/views/patient-detail.js';
-import { similarCasesBody } from '../ui/components/similar-cases.js';
+import { renderPatient } from '../ui/views/patient-detail.js';
 import { openEvent, openExpandedChart } from '../ui/dialogs/patient-dialogs.js';
 import { openRiskClassification } from '../ui/dialogs/risk-classification-dialog.js';
 import { openRiskInfo, openAbout, openNotifications, openProfile, openResetConfirm } from '../ui/dialogs/info-dialogs.js';
@@ -97,20 +96,6 @@ export function setChartPeriod(value) { state.period = value; $('#chart-content'
 
 export function updateDraft(value) { state.drafts[currentPatient().id] = value; $('#note-counter').textContent = value.length + '/2000'; }
 
-// ---- Casos similares (KNN) ----
-
-// Cambia entre comparar sin la última prueba (por defecto) y con ella; la segunda se calcula al momento.
-function setKnnMode(p, includeLatest) {
-  if (state.knnIncludeLatest === includeLatest) return;
-  state.knnIncludeLatest = includeLatest;
-  document.querySelectorAll('[data-action="knn-mode"]').forEach(el => {
-    const selected = (el.dataset.latest === 'true') === includeLatest;
-    el.classList.toggle('selected', selected); el.setAttribute('aria-pressed', selected);
-  });
-  $('#similar-cases-body').innerHTML = similarCasesBody({ loading: true });
-  mountSimilarCases(p);
-}
-
 // ---- Ajuste clínico de la clasificación de riesgo ----
 
 export function submitRiskClassification() {
@@ -162,7 +147,6 @@ export function handleAction(event) {
     case 'followup': followup(target.dataset.id, p); break;
     case 'event': openEvent(p, target.dataset.event); break;
     case 'chart': selectChart(p, target.dataset.chart); break;
-    case 'knn-mode': setKnnMode(p, target.dataset.latest === 'true'); break;
     case 'expand-chart': openExpandedChart(p); break;
     case 'close-modal': closeModal(); break;
     case 'export': exportList(); break;

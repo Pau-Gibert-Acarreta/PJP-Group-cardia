@@ -67,29 +67,19 @@ const legend = () =>
   '<div class="knn-legend"><span><i class="knn-swatch close"></i> Parecido (≤ 0,5 DE)</span><span><i class="knn-swatch near"></i> Algo distinto (≤ 1 DE)</span>' +
   '<span><i class="knn-swatch far"></i> Distinto (&gt; 1 DE)</span><span>' + weightDots(2) + ' Peso de la variable en la búsqueda</span></div>';
 
-function modeSwitch(includeLatest) {
-  const button = (value, label) => '<button type="button" data-action="knn-mode" data-latest="' + value + '" aria-pressed="' + (includeLatest === value) + '" class="' + (includeLatest === value ? 'selected' : '') + '">' + label + '</button>';
-  return '<div class="knn-mode" role="group" aria-label="Estado del paciente que se compara">' +
-    button(false, 'Sin la última prueba') + button(true, 'Con la última prueba') + '</div>';
-}
-
 function body(state) {
   if (state.loading) return '<div class="knn-status" aria-busy="true">Buscando casos parecidos…</div>';
   if (state.error) return '<div class="knn-status">' + icon('info') + ' ' + esc(state.error) + '</div>';
   const data = state.data;
-  const reference = data.mode === 'with_latest'
-    ? 'Se compara el estado del paciente con su última prueba (' + date(data.referenceTime) + ').'
-    : 'Se compara el estado del paciente antes de su última prueba: prueba del ' + date(data.referenceTime) + ' (la última es del ' + date(data.latestTestTime) + ').';
+  const reference = 'Se compara el estado del paciente en su última prueba (' + date(data.referenceTime) + ').';
   return '<p class="knn-reference">' + reference + '</p>' +
     '<p class="knn-summary">' + summaryText(data) + '</p>' + table(data) + legend();
 }
 
-export function similarCasesCard(includeLatest, state) {
+export function similarCasesCard(state) {
   return '<section class="card knn-card" id="similar-cases"><div class="section-heading"><div><h2>' + icon('users') + ' Casos similares</h2>' +
-    '<p>Los 7 pacientes del histórico cuyo estado y evolución más se parecían, y qué les pasó después.</p></div>' + modeSwitch(includeLatest) + '</div>' +
-    '<div id="similar-cases-body">' + body(state) + '</div>' +
-    '<p class="knn-caption">Casos anónimos del estudio de Framingham, comparados por edad, sexo, factores de riesgo, valores y tendencias. ' +
-    'Describe cómo evolucionaron pacientes parecidos; no es una predicción individual.</p></section>';
+    '<p>Los 7 pacientes del histórico cuyo estado y evolución más se parecían, y qué les pasó después.</p></div></div>' +
+    '<div id="similar-cases-body">' + body(state) + '</div></section>';
 }
 
 export const similarCasesBody = state => body(state);

@@ -17,7 +17,7 @@ import { currentPatientId } from '../../app/router.js';
 
 function pageHeading(p) {
   return '<section class="page-heading patient-page-heading"><div><a class="back-link" href="#">' + icon('arrow') + ' Volver a pacientes</a>' +
-    '<h1>Una visión completa de ' + p.firstName + '</h1><p>La información relevante, conectada en un mismo lugar.</p></div>' +
+    '<h1>Una visión completa de ' + p.firstName + '</h1></div>' +
     '<button class="button ' + (p.followup ? 'soft' : 'primary') + '" data-action="followup" data-id="' + p.id + '">' + icon(p.followup ? 'check' : 'bookmark') + (p.followup ? 'En seguimiento' : 'Añadir a seguimiento') + '</button></section>';
 }
 
@@ -66,7 +66,7 @@ function predictionCard(p) {
 // Línea de tiempo de la historia cardiovascular.
 function timelineCard(p) {
   return '<section class="card timeline-card"><div class="section-heading"><div><h2>' + icon('clock') + ' Historia cardiovascular</h2><p>Pruebas y acontecimientos relevantes en el tiempo.</p></div>' +
-    '<span class="subtle-label">Selecciona un evento para consultarlo ' + icon('chevron') + '</span></div>' +
+    '</div>' +
     '<div class="timeline">' + p.events.map((e, i) =>
       '<button class="timeline-event ' + (i === p.events.length - 1 ? 'latest' : '') + '" data-action="event" data-event="' + e.id + '"><span class="event-date">' + date(e.date) + '</span><span class="event-marker">' + icon(e.icon) + '</span><strong>' + e.title + '</strong><span class="event-type">' + e.type + (e.documentId ? ' · con informe' : '') + '</span></button>').join('') +
     '</div></section>';
@@ -96,7 +96,7 @@ function notesCard(p) {
     '<div class="editor-footer"><small id="note-counter">' + (state.drafts[p.id]?.length || 0) + '/2000</small>' +
     (state.noteEditing ? '<button type="button" class="text-button" data-action="cancel-note">Cancelar</button>' : '') +
     '<button class="button primary" type="submit">' + icon('plus') + (state.noteEditing ? 'Guardar cambios' : 'Guardar nota') + '</button></div>' +
-    '<small class="privacy-hint">Usa únicamente información ficticia en esta demo.</small></form>';
+    '</form>';
   return '<section class="card notes-card" id="clinical-notes"><div class="section-heading"><div><h2>' + icon('note') + ' Notas de consulta <span class="count-pill">' + notes.length + '</span></h2><p>Tu contexto clínico también forma parte de la historia.</p></div>' +
     '<span class="local-label">' + icon('shield') + ' Guardadas en la historia clínica</span></div>' +
     '<div class="notes-layout"><div class="notes-list">' + list + '</div>' + editor + '</div></section>';
@@ -107,22 +107,19 @@ export function renderPatient(p) {
     '<div class="patient-top-grid">' + identityCard(p) + predictionCard(p) + '</div>' +
     timelineCard(p) +
     '<div class="clinical-grid">' + chartCard(p) + renderFindings(p, clinical.config, clinical.ruleConfig) + '</div>' +
-    similarCasesCard(state.knnIncludeLatest, { loading: true }) +
+    similarCasesCard({ loading: true }) +
     '<div class="detail-bottom-grid">' + renderIndicators(p, clinical.config) + notesCard(p) + '</div>';
   mountSimilarCases(p);
 }
 
-// Casos similares (KNN): se piden al pintar la ficha y se rellenan al llegar.
-// Sin la última prueba al abrir el paciente; con ella cuando el médico lo elige.
+// Casos similares (KNN): se piden al pintar la ficha, con el estado de la última prueba del paciente.
 export function mountSimilarCases(p) {
-  const includeLatest = state.knnIncludeLatest;
   const fill = result => {
     const slot = $('#similar-cases-body');
-    if (!slot || currentPatientId() !== p.id || state.knnIncludeLatest !== includeLatest) return;
-    slot.innerHTML = similarCasesBody(result.data ? { data: result.data } : {
-      error: result.status === 409 ? result.error + '. Prueba con «Con la última prueba».' : 'No se pueden cargar los casos similares: ' + result.error
-    });
+    if (!slot || currentPatientId() !== p.id) return;
+    slot.innerHTML = similarCasesBody(result.data ? { data: result.data }
+      : { error: 'No se pueden cargar los casos similares: ' + result.error });
   };
-  const cached = cachedSimilar(p.id, includeLatest);
-  if (cached) cached.then(fill); else loadSimilar(p.id, includeLatest).then(fill);
+  const cached = cachedSimilar(p.id, true);
+  if (cached) cached.then(fill); else loadSimilar(p.id, true).then(fill);
 }

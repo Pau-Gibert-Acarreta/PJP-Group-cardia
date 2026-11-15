@@ -149,7 +149,8 @@ test('resumen y ficha utilizan los mismos valores, campos y fechas por paciente'
     assert.equal(rows.length, 8);
     assert.equal(rows.find(item => item.field === 'egfr').latest.value, p.metrics.egfr);
     assert.equal(rows.find(item => item.field === 'systolic').latest.value, p.metrics.systolic);
-    assert.match(overviewRow(p, config), new RegExp(p.age + ' años · ' + p.sex));
+    // El listado muestra el sexo como símbolo (♂/♀) con el texto en title para accesibilidad.
+    assert.match(overviewRow(p, config), new RegExp(p.age + ' años · <span class="sex-symbol" title="' + p.sex + '"[^>]*>' + (p.sex === 'Mujer' ? '♀' : '♂') + '</span>'));
     for (const html of [overviewRow(p, config), renderIndicators(p, config), renderFindings(p, config, rules)]) {
       assert.ok(!/NaN|Infinity|undefined/.test(html));
     }

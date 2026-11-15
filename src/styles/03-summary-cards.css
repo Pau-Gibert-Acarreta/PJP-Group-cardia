@@ -103,3 +103,26 @@
   width: 5px;
   height: 5px;
 }
+
+/* Iconos de las tarjetas: solo el símbolo, con el color del nivel (sin recuadro) */
+.stat-icon,
+.stat-card.high .stat-icon, .stat-icon.high,
+.stat-card.medium .stat-icon,
+.stat-card.low .stat-icon {
+  width: auto;
+  height: auto;
+  background: none;
+  border-radius: 0;
+}
+.stat-icon .icon {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2;
+}
+.stat-card.all .stat-icon { color: #5e7069; }
+.stat-card.high .stat-icon { color: #d04a3f; }
+.stat-card.medium .stat-icon { color: #e88b2e; }
+.stat-card.low .stat-icon { color: #3a9676; }
+.stat-card .stat-value {
+  margin-bottom: 2px;
+}
