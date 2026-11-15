@@ -7,6 +7,7 @@ Schema for block 2 of the architecture ("Capa de Datos"): PostgreSQL + Timescale
 | `001_schema.sql` | Tables, hypertables, HNSW index and read views. |
 | `002_load_raw_csv.sql` | Loads `data/raw.csv` into the schema. |
 | `004_synthetic_fill.sql` | Fills the fields the frontend needs but `raw.csv` lacks with fake data (see below). Optional. |
+| `005_knn.sql` | Vector of 20 dimensions and `embedding_model` for the KNN of similar patients. |
 | `003_smoke_test.sql` | Checks the load, hypertables, pgvector, constraints and views; rolls back. |
 
 ```sh
@@ -14,6 +15,7 @@ createdb cardia
 psql -d cardia -v ON_ERROR_STOP=1 -f db/001_schema.sql
 psql -d cardia -v ON_ERROR_STOP=1 -v baseline=2013-01-01 -f db/002_load_raw_csv.sql
 psql -d cardia -v ON_ERROR_STOP=1 -f db/004_synthetic_fill.sql   # optional, demo data
+psql -d cardia -v ON_ERROR_STOP=1 -f db/005_knn.sql
 psql -d cardia -v ON_ERROR_STOP=1 -f db/003_smoke_test.sql
 ```
 
@@ -69,22 +71,19 @@ Timestamps are `patient.baseline_date + TIME days`. The source has no calendar d
 | Findings | `finding` (written by the rule engine). |
 | Similar patients (KNN) | `exam_embedding`. |
 
-## Embedding (`exam_embedding.embedding`, `vector(16)`)
+## Embedding (`exam_embedding.embedding`, `vector(20)`)
 
-One vector per exam, each component standardised (z-score) with the scaler stored next to the model in the registry. Order:
+`005_knn.sql` sets the dimension to 20 and adds `embedding_model` (features, weights and scaler per version). The vectors are built by `backend/` (`uv run python -m app.jobs.build_knn_index`), version `knn-v1`: one vector per historical exam, so each indexed case has a known outcome.
 
-`age_years`, `sex`, `systolic`, `diastolic`, `heart_rate`, `bmi`, `total_cholesterol`, `hdl_cholesterol`, `ldl`, `glucose`, `current_smoker`, `cigs_per_day`, `bp_meds`, `diabetes`, `prev_hypertension`, `prev_chd`.
+Each component is the z-score of a feature times `sqrt(weight)`, so pgvector's L2 distance is a weighted Euclidean distance. A missing value is stored as 0 (the mean). Features, in order (definition and weights in `backend/app/knn/features.py`):
 
-Missing components are imputed before insert, because a pgvector column cannot hold NULL components. Changing the feature list or the scaler means a new `embedding_version`; changing the number of features means changing the column dimension and rebuilding the index.
+- Context: `age_years`, `sex`, `current_smoker`, `cigs_per_day`, `diabetes`, `bp_meds`, `prev_hypertension`, `prev_chd`, `prev_stroke`.
+- Values at the exam: `bmi`, `systolic`, `diastolic`, `heart_rate`, `total_cholesterol`, `hdl_cholesterol`, `glucose`.
+- Trends (change per year since the previous measurement): `systolic_trend`, `total_cholesterol_trend`, `bmi_trend`, `glucose_trend`.
 
-```sql
--- 20 most similar past exams of other patients
-SELECT e.patient_id, e.exam_time, e.embedding <-> $1 AS distance
-FROM cardia.exam_embedding e
-WHERE e.embedding_version = $2 AND e.patient_id <> $3
-ORDER BY e.embedding <-> $1
-LIMIT 20;
-```
+Only original Framingham variables are used: the synthetic labs from `004` (HbA1c, creatinine, eGFR, ACR) are left out.
+
+Changing features or weights means rebuilding the index; changing the number of features means changing the column dimension too.
 
 ## Object storage
 

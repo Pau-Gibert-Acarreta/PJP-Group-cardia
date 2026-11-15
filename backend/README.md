@@ -52,6 +52,7 @@ Mismas rutas que ya propone `src/services/api-client.js`, con prefijo `/api/v1`.
 | `PUT / DELETE /patients/{id}/risk-classification` | Ajuste clínico del nivel `{ level, reason }`. Elegir el nivel del modelo elimina el ajuste. Queda el historial con autor y fecha. |
 | `PUT /patients/{id}/followup` | `{ followup: true }`. |
 | `GET / POST /patients/{id}/notes`, `PUT /patients/{id}/notes/{noteId}` | Notas de consulta `{ text }`. |
+| `GET /patients/{id}/similar` | Los 7 pacientes más parecidos (KNN). `include_latest=false` (por defecto): estado en la penúltima prueba; `true`: con la última. Ver abajo. |
 | `POST /patients/{id}/tests` | Evento "Nueva prueba" (ver abajo). |
 | `GET /config/rules`, `GET /config/indicators` | Los JSON de configuración, para que el frontend los lea del backend. |
 | `GET /config/conditions` | Cómo se deriva cada antecedente del listado. |
@@ -79,6 +80,16 @@ Guarda una medición por valor y un evento en la línea temporal, recalcula los 
 
 > Con los datos de Framingham no sale ningún hallazgo: entre dos exámenes del mismo paciente pasan al menos 1.554 días y todas las reglas tienen `maxIntervalDays: 180`. Los hallazgos aparecen cuando entran pruebas nuevas por `POST /tests`.
 
+## Pacientes similares (KNN, k = 7)
+
+`app/knn/` implementa el bloque 4B "KNN on-the-fly" dentro del backend.
+
+- **Caso:** estado de un paciente en un instante t, con 20 variables, todas del dataset original de Framingham: contexto (edad, sexo, tabaco, diabetes, tratamiento, antecedentes), último valor de cada indicador hasta t (IMC, PA, frecuencia cardíaca, colesterol total y HDL, glucosa) y tendencia anual respecto a la medición anterior (PA sistólica, colesterol, IMC, glucosa). HbA1c, creatinina, eGFR y ACR no se usan porque son sintéticos.
+- **Pesos:** más altos en los predictores clásicos de riesgo cardiovascular (edad 3; PA sistólica 2,5; sexo, tabaco, diabetes y cardiopatía previa 2; colesterol total y tendencia de PA 1,5). HDL pesa 0,75 porque en el estudio solo se midió en el tercer examen. Se cambian en `app/knn/features.py`.
+- **Índice:** un vector por examen histórico (11.627), con desenlace conocido. Se construye con `uv run python -m app.jobs.build_knn_index` (unos 7 s) después de `db/005_knn.sql`.
+- **Consulta:** sin la última prueba (lo que pide el frontend al abrir la ficha) o con ella (a petición del médico). HNSW devuelve los exámenes más cercanos y se queda el mejor de cada paciente hasta tener 7 pacientes distintos.
+- **Respuesta:** variables del paciente y de cada caso, diferencia por variable en desviaciones estándar y desenlace después del examen comparado (evento cardiovascular, coronario, ictus, muerte, años de seguimiento). Los casos son anónimos ("Caso 1"…"Caso 7") porque son otros pacientes.
+
 ## API interna para ML (`/api/v1/ml`, cabecera `X-API-Key`)
 
 | Método y ruta | Para |
@@ -86,7 +97,7 @@ Guarda una medición por valor y un evento en la línea temporal, recalcula los 
 | `GET /ml/training-set?target=cv` | 4A. Una fila por examen con las variables y la etiqueta (`event`, `days_to_event` contados desde ese examen). Excluye exámenes posteriores al evento. Paginado por cursor (`next`). |
 | `GET /ml/patients/{id}/features` | 4B. Variables actuales del paciente: último examen + último valor de cada indicador. Nunca incluye etiquetas. |
 | `POST /ml/patients/{id}/risk-predictions` | 4B guarda una predicción por su cuenta (p. ej. recálculo masivo tras promocionar un modelo). |
-| `PUT /ml/embeddings` | Guarda vectores de 16 dimensiones por examen y versión. |
+| `PUT /ml/embeddings` | Guarda vectores de 20 dimensiones por examen y versión. |
 | `POST /ml/embeddings/search` | KNN sobre el índice HNSW (`{ version, embedding, k, excludePatientId }`). |
 | `GET /ml/embeddings/{id}?version=` | Vectores de un paciente. |
 

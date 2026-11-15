@@ -8,6 +8,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
+from .knn.features import DIMENSIONS
+
 
 class FollowupIn(BaseModel):
     followup: bool
@@ -64,7 +66,7 @@ class PredictionIn(BaseModel):
 class EmbeddingItem(BaseModel):
     patientId: int
     examTime: datetime
-    embedding: list[float] = Field(min_length=16, max_length=16)
+    embedding: list[float] = Field(min_length=DIMENSIONS, max_length=DIMENSIONS)
 
 
 class EmbeddingsIn(BaseModel):
@@ -74,6 +76,6 @@ class EmbeddingsIn(BaseModel):
 
 class EmbeddingSearchIn(BaseModel):
     version: str
-    embedding: list[float] = Field(min_length=16, max_length=16)
+    embedding: list[float] = Field(min_length=DIMENSIONS, max_length=DIMENSIONS)
     k: int = Field(default=20, ge=1, le=200)
     excludePatientId: int | None = None

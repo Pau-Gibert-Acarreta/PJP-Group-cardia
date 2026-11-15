@@ -12,7 +12,8 @@ export const state = {
   chart: 'ldl',        // clave de CHART_OPTIONS (ui/components/chart.js)
   period: 'all',       // meses de la gráfica ('6', '12') o 'all': los exámenes del estudio están separados años
   drafts: {},          // borradores de notas por paciente
-  noteEditing: null    // id de la nota en edición
+  noteEditing: null,   // id de la nota en edición
+  knnIncludeLatest: false // casos similares: sin (por defecto) o con la última prueba
 };
 
 // Configuración de config/indicators.json y config/finding-rules.json.
