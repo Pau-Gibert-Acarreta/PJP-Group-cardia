@@ -2,7 +2,7 @@
 name = "cardia-ml"
 version = "0.1.0"
 description = "Cardia ML: entrenamiento periódico (4A) y Motor de Riesgo + XAI (4B)"
-requires-python = ">=3.11,<3.14"
+requires-python = ">=3.12,<3.14"
 dependencies = [
     "scikit-learn==1.9.1",
     "scikit-survival",
