@@ -90,6 +90,21 @@ Guarda una medición por valor y un evento en la línea temporal, recalcula los 
 - **Consulta:** sin la última prueba (lo que pide el frontend al abrir la ficha) o con ella (a petición del médico). HNSW devuelve los exámenes más cercanos y se queda el mejor de cada paciente hasta tener 7 pacientes distintos.
 - **Respuesta:** variables del paciente y de cada caso, diferencia por variable en desviaciones estándar y desenlace después del examen comparado (evento cardiovascular, coronario, ictus, muerte, años de seguimiento). Los casos son anónimos ("Caso 1"…"Caso 7") porque son otros pacientes.
 
+## Analíticas en PDF (documentos)
+
+El "hospital" genera informes de laboratorio en PDF y el ETL los ingesta. **La base de datos es la fuente de verdad**: el PDF es una vista impresa de ella, nunca al revés.
+
+```sh
+uv run python -m app.jobs.generate_lab_reports --all      # ~11.600 PDF (~7 min, ~7 KB cada uno) en data/landing/lab_reports/
+uv run python -m app.jobs.ingest_lab_reports              # ~6 min; idempotente (sha256)
+```
+
+- **Generador** (`app/jobs/generate_lab_reports.py`): adaptado del script de un compañero. Mantiene su maquetación, pero toma de la base de datos el paciente (nombre, CIP, sexo), la edad, el periodo y la fecha del examen, y los valores de glucosa, colesterol total, HDL, LDL, HbA1c, creatinina, eGFR y ACR. El resto del informe (hemograma, urea, iones, perfil hepático, triglicéridos) no existe en la base de datos y se simula de forma reproducible solo para dar realismo; no se ingesta. Cada página lleva el aviso «Documento sintético».
+- **Ingesta** (`app/documents/ingest.py`): extrae el texto del PDF (son digitales, no hace falta OCR), identifica al paciente por CIP y el examen por nº de petición y fecha, **comprueba que cada valor impreso coincide con la base de datos**, guarda el PDF y enlaza `measurement.document_id` y `clinical_event.document_id`. No crea ni cambia mediciones. Un PDF ilegible, de otro paciente o con valores distintos se rechaza.
+- **Almacén** (`app/documents/storage.py`): MVP en PostgreSQL (`document_blob`, `storage_backend = 'postgres'`), unos 80 MB para todo el cupo. `bucket` y `object_key` se rellenan con la ruta de S3 (`cardia-raw/documents/{patient_id}/lab_report/{document_id}.pdf`), así que pasar a S3 es copiar los bytes y cambiar `storage_backend`. Las imágenes Docker de MinIO ya no se distribuyen libremente, por eso no se ha montado un S3 local.
+- **Endpoints**: `GET /patients/{id}/documents` (lista), `GET /documents/{id}` (metadatos) y `GET /documents/{id}/content` (el PDF, `inline`). El navegador nunca recibe bucket ni clave.
+- **Frontend**: los exámenes con informe se marcan «con informe» en la línea temporal y su ventana tiene «Ver informe del laboratorio (PDF)».
+
 ## API interna para ML (`/api/v1/ml`, cabecera `X-API-Key`)
 
 | Método y ruta | Para |
@@ -123,5 +138,5 @@ uv run pytest
 ## Pendiente
 
 - Autenticación de usuarios: hoy el autor llega en la cabecera `X-Clinician`.
-- Documentos: servir PDFs con URL prefirmada cuando el compañero cargue `document`.
+- Documentos en S3 real (hoy en PostgreSQL) y URL prefirmada en lugar de servir los bytes desde el backend.
 - Conectar el frontend: cambiar `patient-service.js` y `notes-service.js` para que usen `api-client.js`.

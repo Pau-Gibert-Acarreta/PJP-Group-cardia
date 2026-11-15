@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 from . import db
 from .clinical_config import ClinicalConfigError, ClinicalConfigStore
 from .deps import Conn
-from .routers import config, ml, patients
+from .routers import config, documents, ml, patients
 from .settings import get_settings
 
 log = logging.getLogger("cardia")
@@ -66,6 +66,7 @@ API_PREFIX = "/api/v1"
 app.include_router(patients.router, prefix=API_PREFIX)
 app.include_router(config.router, prefix=API_PREFIX)
 app.include_router(ml.router, prefix=API_PREFIX)
+app.include_router(documents.router, prefix=API_PREFIX)
 
 
 @app.get(API_PREFIX + "/health", tags=["sistema"])
