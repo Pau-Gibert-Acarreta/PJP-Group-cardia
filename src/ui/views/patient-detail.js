@@ -66,7 +66,7 @@ function timelineCard(p) {
   return '<section class="card timeline-card"><div class="section-heading"><div><h2>' + icon('clock') + ' Historia cardiovascular</h2><p>Pruebas y acontecimientos relevantes en el tiempo.</p></div>' +
     '<span class="subtle-label">Selecciona un evento para consultarlo ' + icon('chevron') + '</span></div>' +
     '<div class="timeline">' + p.events.map((e, i) =>
-      '<button class="timeline-event ' + (i === p.events.length - 1 ? 'latest' : '') + '" data-action="event" data-event="' + e.id + '"><span class="event-date">' + date(e.date) + '</span><span class="event-marker">' + icon(e.icon) + '</span><strong>' + e.title + '</strong><span class="event-type">' + e.type + '</span></button>').join('') +
+      '<button class="timeline-event ' + (i === p.events.length - 1 ? 'latest' : '') + '" data-action="event" data-event="' + e.id + '"><span class="event-date">' + date(e.date) + '</span><span class="event-marker">' + icon(e.icon) + '</span><strong>' + e.title + '</strong><span class="event-type">' + e.type + (e.documentId ? ' · con informe' : '') + '</span></button>').join('') +
     '</div></section>';
 }
 

@@ -6,6 +6,7 @@ import { esc } from '../../utils/text.js';
 import { icon } from '../icons.js';
 import { openModal } from '../components/modal.js';
 import { chartData, chart } from '../components/chart.js';
+import { api } from '../../services/api-client.js';
 
 const EVENT_REPORTS = {
   ecg: 'Ritmo sinusal registrado a 72 lpm. Registro de ejemplo sin trazado adjunto.',
@@ -40,7 +41,11 @@ export function openEvent(p, id) {
   openModal(e.title,
     '<div class="event-dialog-meta"><span class="event-dialog-icon">' + icon(e.icon) + '</span><div><span class="eyebrow">' + esc(e.type) + '</span><p>' + date(e.date, true) + ' · ' + esc(p.name) + '</p></div></div>' +
     (e.description ? '<p class="event-description">' + esc(e.description) + '</p>' : '') + detail +
-    '<div class="modal-note">' + icon('info') + ' Datos del estudio de Framingham; HbA1c, creatinina, eGFR y ACR son sintéticos</div><div class="modal-footer"><button class="button primary" data-action="close-modal">Cerrar detalle</button></div>');
+    '<div class="modal-note">' + icon('info') + ' Datos del estudio de Framingham; HbA1c, creatinina, eGFR y ACR son sintéticos</div>' +
+    '<div class="modal-footer">' + (e.documentId
+      ? '<a class="button secondary" href="' + esc(api.documentUrl(e.documentId)) + '" target="_blank" rel="noopener">' + icon('note') + ' Ver informe del laboratorio (PDF)</a>'
+      : '') +
+    '<button class="button primary" data-action="close-modal">Cerrar detalle</button></div>');
 }
 
 export function openExpandedChart(p) {

@@ -39,6 +39,8 @@ export const api = {
   createNote: (id, text) => request(patient(id) + '/notes', { method: 'POST', body: { text } }),
   updateNote: (id, noteId, text) => request(patient(id) + '/notes/' + encodeURIComponent(noteId), { method: 'PUT', body: { text } }),
   // Los 7 pacientes más parecidos (KNN), sin o con la última prueba del paciente.
+  // URL del PDF de un documento (el backend lo sirve desde su almacén).
+  documentUrl: documentId => API_BASE_URL + '/documents/' + encodeURIComponent(documentId) + '/content',
   getSimilar: (id, includeLatest) => request(patient(id) + '/similar?include_latest=' + Boolean(includeLatest)),
   // Aún sin usar: el riesgo de ML y su ajuste clínico siguen simulados en el frontend.
   getRiskAssessments: id => request(patient(id) + '/risk-assessments'),

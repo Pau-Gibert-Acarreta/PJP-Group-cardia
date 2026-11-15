@@ -117,4 +117,4 @@ Rules:
 - Object metadata repeats `document-id`, `patient-id`, `kind`, `sha256` and `batch-id`, so the bucket can be reconciled against the database.
 - The backend serves a file by looking up `document_id`, then issuing a short-lived presigned URL. Bucket and key are not sent to the frontend.
 
-MVP without S3: same `document` row with `storage_backend = 'postgres'` and the bytes in `document_blob`. Bucket and key are still filled in with the values above, so the later move to S3 is a copy plus an update of `storage_backend`.
+Current setup (MVP without S3): lab report PDFs are stored with `storage_backend = 'postgres'` and the bytes in `document_blob` (generated and ingested by `backend/`, see its README). Bucket and key are still filled in with the values above, so the later move to S3 is a copy plus an update of `storage_backend`.
