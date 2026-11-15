@@ -249,9 +249,16 @@ def _factors(shap: list[dict]) -> list[dict]:
     for f in shap:
         value = f.get("value")
         unit = f.get("unit")
+        if value is None:
+            shown = "Sin dato"           # el modelo lo imputó (p. ej. HDL fuera del tercer examen)
+        elif isinstance(value, (int, float)):
+            shown = f"{value:g} {unit}".strip()
+        else:
+            shown = str(value)
         out.append({
             "label": f.get("label") or f.get("feature"),
-            "value": f"{value} {unit}".strip() if unit else str(value),
+            "value": shown,
+            "contribution": f.get("contribution", 0),
             "weight": round(abs(f.get("contribution", 0)) / top * 100),
             "direction": "up" if f.get("contribution", 0) >= 0 else "down",
         })

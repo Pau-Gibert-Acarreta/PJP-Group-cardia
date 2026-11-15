@@ -43,7 +43,7 @@ function toggleRiskSort() {
 
 function exportList() {
   downloadCsv(buildPatientsCsv(getPatients(), state.filters, clinical.config), 'cardia-pacientes.csv');
-  toast('Listado filtrado exportado (el riesgo es simulado)');
+  toast('Listado filtrado exportado');
 }
 
 // ---- Ficha del paciente ----
@@ -133,7 +133,7 @@ function restoreRiskClassification(p) {
 }
 
 function confirmReset() {
-  // Notas y seguimiento están en el servidor; aquí solo se borra lo local (ajustes de riesgo simulado
+  // Notas y seguimiento están en el servidor; aquí solo se borra lo local (ajustes de la clasificación
   // y las claves antiguas de notas y seguimiento de la versión sin backend).
   try { removeStorage(STORAGE_KEYS.notes, STORAGE_KEYS.followups, STORAGE_KEYS.riskOverrides); location.reload(); } catch { toast('No se ha podido acceder al almacenamiento del navegador'); }
 }

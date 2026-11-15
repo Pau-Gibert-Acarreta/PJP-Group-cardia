@@ -1,6 +1,6 @@
 # Contrato de datos e indicadores
 
-El Core Backend API (`backend/`) entrega los pacientes con este contrato. El riesgo de ML aún no existe y se simula en el frontend.
+El Core Backend API (`backend/`) entrega los pacientes con este contrato, incluida la predicción de riesgo del modelo (`ml/`).
 
 ## Entrada de mediciones
 

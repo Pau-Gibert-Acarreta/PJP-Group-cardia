@@ -1,0 +1,22 @@
+{
+  "champion": "coxph_score2_v1",
+  "models": [
+    {
+      "version": "coxph_score2_v1",
+      "name": "cardia-cv-coxph",
+      "file": "coxph_score2_v1.joblib",
+      "background": "coxph_score2_v1_background.parquet",
+      "description": "CoxPH + splines sobre las 6 variables de SCORE2; visitas 1-3, 40-69 años (candidato 38 de la búsqueda del equipo)",
+      "target": "target_broad_10y",
+      "horizon_years": 10,
+      "metrics": {
+        "test_roc_auc": 0.6636,
+        "test_patients": 454,
+        "test_events": 67,
+        "cv_roc_auc": 0.6948
+      },
+      "trained_rows": 7871,
+      "registered_at": "2026-11-15T11:26:52+00:00"
+    }
+  ]
+}

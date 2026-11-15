@@ -42,7 +42,7 @@ export const api = {
   // URL del PDF de un documento (el backend lo sirve desde su almacén).
   documentUrl: documentId => API_BASE_URL + '/documents/' + encodeURIComponent(documentId) + '/content',
   getSimilar: (id, includeLatest) => request(patient(id) + '/similar?include_latest=' + Boolean(includeLatest)),
-  // Aún sin usar: el riesgo de ML y su ajuste clínico siguen simulados en el frontend.
+  // Predicciones guardadas del Motor de Riesgo; el ajuste clínico aún se guarda en el navegador.
   getRiskAssessments: id => request(patient(id) + '/risk-assessments'),
   setRiskClassification: (id, level, reason) => request(patient(id) + '/risk-classification', { method: 'PUT', body: { level, reason } }),
   clearRiskClassification: id => request(patient(id) + '/risk-classification', { method: 'DELETE' })

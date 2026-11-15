@@ -1,7 +1,7 @@
 // Ajuste clínico de la clasificación de riesgo (alto, medio, bajo).
 // El médico puede cambiar la clasificación, nunca la probabilidad calculada por el modelo.
 //
-// HOY: los ajustes se guardan en localStorage, porque el riesgo que ajustan es simulado.
+// HOY: los ajustes se guardan en localStorage.
 // MAÑANA (con el modelo de ML): guardarlos con api.setRiskClassification / api.clearRiskClassification
 // (api-client.js); el backend ya registra autor, fecha y motivo en risk_classification_override.
 import { riskLevel, RISK_LEVELS } from '../domain/risk.js';

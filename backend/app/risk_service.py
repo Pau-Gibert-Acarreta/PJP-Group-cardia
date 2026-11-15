@@ -39,8 +39,11 @@ class Prediction(BaseModel):
 
 
 def build_features(conn: Connection, patient_id: int) -> tuple[datetime | None, dict]:
-    """Variables para el modelo: estado del último examen + último valor de cada indicador.
+    """Variables para el modelo: estado del último examen, actualizado con pruebas posteriores.
 
+    Igual que en el entrenamiento, cada valor es el de ese examen: un indicador que no se midió
+    en el último examen queda ausente (lo imputa el modelo), no se rellena con uno antiguo.
+    Las pruebas registradas después del examen (POST /tests) sí actualizan su valor.
     Nunca incluye patient_outcome: son etiquetas de entrenamiento (fuga de la variable objetivo).
     """
     exam = conn.execute("""
@@ -51,8 +54,10 @@ def build_features(conn: Connection, patient_id: int) -> tuple[datetime | None, 
     if exam:
         exam_time = exam["exam_time"]
         features = {k: v for k, v in exam.items() if k not in ("patient_id", "exam_time")}
-    for r in conn.execute("SELECT indicator_code, value FROM latest_measurement WHERE patient_id = %s",
-                          [patient_id]):
+    for r in conn.execute("""
+            SELECT indicator_code, value FROM latest_measurement
+            WHERE patient_id = %s AND (%s::timestamptz IS NULL OR measured_at > %s::timestamptz)
+        """, [patient_id, exam_time, exam_time]):
         features[r["indicator_code"]] = r["value"]
     return exam_time, features
 

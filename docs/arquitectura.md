@@ -17,7 +17,7 @@ src/
 │   └── bootstrap.js       Carga la configuración y pinta la app
 ├── services/              Acceso a datos: la única capa que sabe de dónde vienen
 │   ├── patient-service.js Pacientes (cupo y ficha) y seguimiento, desde la API
-│   ├── patient-adapter.js Paciente de la API → objeto de las vistas (+ riesgo simulado)
+│   ├── patient-adapter.js Paciente de la API → objeto de las vistas
 │   ├── notes-service.js   Notas de consulta, desde la API
 │   ├── risk-service.js    Ajuste clínico de la clasificación de riesgo
 │   ├── config-service.js  Carga y validación de src/config/*.json
@@ -32,7 +32,7 @@ src/
 │   ├── kdigo.js           Categorías G/A de KDIGO
 │   ├── indicator-status.js Colores por rango y dirección del cambio
 │   └── clinical-config.js Validación de la configuración
-├── data/demo/             Riesgo simulado y pacientes de ejemplo para las pruebas
+├── data/demo/             Pacientes de ejemplo para las pruebas
 ├── config/                Indicadores, rangos de color y reglas (editables sin tocar código)
 ├── ui/                    Todo lo que genera HTML
 │   ├── views/             Pantallas completas: layout, listado, ficha, estados
@@ -77,7 +77,7 @@ El frontend está conectado al Core Backend API (`backend/`). `scripts/serve.mjs
 | Línea temporal y notas | Ficha (`GET /patients/{id}`), pedida al abrir el paciente |
 | Seguimiento | `PUT /patients/{id}/followup` |
 | Notas nuevas o editadas | `POST /patients/{id}/notes`, `PUT /patients/{id}/notes/{noteId}` |
-| Riesgo, factores e historial de riesgo | Simulados: `data/demo/simulated-risk.js` |
+| Riesgo, factores (SHAP) e historial de riesgo | Predicción guardada del Motor de Riesgo (`ml/`): `risk` en el listado; `factors` e `history.risk` en la ficha |
 | Ajuste de la clasificación de riesgo | `localStorage` (`services/risk-service.js`) |
 | Hallazgos | Calculados en el navegador (`domain/findings.js`) con `finding-rules.json` |
 | Línea temporal | `GET /patients/{id}/events`: un evento por prueba (analítica, orina, constantes) con sus `results`; la ventana muestra solo esos valores |
@@ -87,11 +87,11 @@ El frontend está conectado al Core Backend API (`backend/`). `scripts/serve.mjs
 Flujo:
 
 1. `bootstrap.js` carga la configuración y el cupo completo (`patient-service.loadPatients`). El listado filtra, ordena y cuenta en el navegador, como antes.
-2. `services/patient-adapter.js` convierte cada paciente de la API al objeto que usan las vistas y le añade el riesgo simulado.
+2. `services/patient-adapter.js` convierte cada paciente de la API al objeto que usan las vistas.
 3. Al abrir una ficha, `render.js` pide los datos que faltan (`loadPatientDetail`) y pinta cuando llegan.
 4. Si falla el servidor, se muestra un error con «Reintentar»; si falla una nota o el seguimiento, un aviso, y no se pierde lo escrito.
 
-Cuando exista el Motor de Riesgo (4B), `api.getRiskAssessments` sustituirá a `simulateRisk` en el adaptador, y el ajuste de clasificación pasará a `api.setRiskClassification`, que el backend ya guarda con autor, fecha y motivo.
+El riesgo lo calcula el Motor de Riesgo (`ml/service.py`) y el backend lo guarda en `risk_prediction`; el frontend solo lo lee. El ajuste de clasificación todavía se guarda en `localStorage`; el backend ya lo admite con autor, fecha y motivo (`api.setRiskClassification`).
 
 ## Ajuste clínico de la clasificación de riesgo
 

@@ -1,0 +1,28 @@
+[project]
+name = "cardia-ml"
+version = "0.1.0"
+description = "Cardia ML: entrenamiento periódico (4A) y Motor de Riesgo + XAI (4B)"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "scikit-learn==1.9.1",
+    "scikit-survival",
+    "polars",
+    "pandas",
+    "pyarrow",
+    "numpy",
+    "joblib",
+    "psycopg[binary]>=3.2",
+    "fastapi>=0.115,<1",
+    "uvicorn[standard]>=0.30",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "httpx>=0.27"]
+notebook = ["ipykernel", "nbconvert", "matplotlib", "seaborn"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "src"]

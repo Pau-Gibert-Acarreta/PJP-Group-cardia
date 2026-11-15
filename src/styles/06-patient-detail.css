@@ -671,3 +671,17 @@
   margin-top: 9px;
   display: block;
 }
+.factor-direction {
+  font-style: normal;
+  font-weight: 600;
+  margin-left: 2px;
+}
+.factor.raises .factor-direction {
+  color: #b9674b;
+}
+.factor.reduces .factor-direction {
+  color: #3a9676;
+}
+.factor.reduces .factor-track i {
+  background: #9cc7b2;
+}

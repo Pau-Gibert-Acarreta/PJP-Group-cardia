@@ -1,0 +1,6 @@
+cv_rank,node,cv_roc_auc,test_roc_auc,description
+1,27,0.6948,0.6617,"coxph | visits=123 | age=all | imp=median | fe=score2_lp | log=hdl_cholesterol | scale=standard | splines | {""alpha"": 0.1, ""ties"": ""efron""}"
+2,38,0.6948,0.6636,"coxph | visits=123 | age=40-69 | imp=median | scale=standard | splines | {""alpha"": 0.1, ""ties"": ""efron""}"
+3,26,0.6946,0.6585,"coxph | visits=123 | age=all | imp=median | scale=standard | splines | {""alpha"": 0.1, ""ties"": ""efron""}"
+4,29,0.6946,0.6585,"coxph | visits=123 | age=all | imp=median | scale=standard | splines | {""alpha"": 0.1, ""ties"": ""efron""}"
+5,25,0.6935,0.6625,"coxph | visits=123 | age=all | imp=median | scale=standard | splines | {""alpha"": 0.01, ""ties"": ""efron""}"

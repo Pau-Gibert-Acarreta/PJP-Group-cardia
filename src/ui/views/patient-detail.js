@@ -50,15 +50,17 @@ function overrideNote(p) {
 
 // Riesgo cardiovascular estimado y variables que lo explican.
 function predictionCard(p) {
-  const gauge = '<div class="risk-gauge ' + riskLevel(p.risk) + '"><svg viewBox="0 0 110 110" aria-hidden="true"><circle class="gauge-bg" cx="55" cy="55" r="45"/><circle class="gauge-value" cx="55" cy="55" r="45" pathLength="100" stroke-dasharray="' + p.risk + ' 100"/></svg>' +
-    '<div><strong>' + num(p.risk, 1) + '<small>%</small></strong><span>probabilidad</span></div></div>';
+  const hasRisk = Number.isFinite(p.risk);
+  const gauge = '<div class="risk-gauge ' + (hasRisk ? riskLevel(p.risk) : '') + '"><svg viewBox="0 0 110 110" aria-hidden="true"><circle class="gauge-bg" cx="55" cy="55" r="45"/><circle class="gauge-value" cx="55" cy="55" r="45" pathLength="100" stroke-dasharray="' + (hasRisk ? p.risk : 0) + ' 100"/></svg>' +
+    '<div><strong>' + (hasRisk ? num(p.risk, 1) + '<small>%</small>' : '—') + '</strong><span>probabilidad</span></div></div>';
   const topK = '<label>Top <select id="top-k" aria-label="Número de variables explicativas"><option value="3" ' + (state.topK === 3 ? 'selected' : '') + '>3</option><option value="5" ' + (state.topK === 5 ? 'selected' : '') + '>5</option></select></label>';
-  const factors = p.factors.slice(0, state.topK).map(f => '<div class="factor"><span>' + f.label + '</span><div class="factor-track"><i style="width:' + f.weight + '%"></i></div><strong>' + f.value + '</strong></div>').join('');
+  // Contribución SHAP: la barra es su peso relativo y la flecha, si sube o baja el riesgo de este paciente.
+  const factors = p.factors.slice(0, state.topK).map(f => '<div class="factor ' + (f.direction === 'down' ? 'reduces' : 'raises') + '" title="' + (f.direction === 'down' ? 'Reduce' : 'Aumenta') + ' el riesgo estimado"><span>' + esc(f.label) + ' <em class="factor-direction">' + (f.direction === 'down' ? '↓' : '↑') + '</em></span><div class="factor-track"><i style="width:' + f.weight + '%"></i></div><strong>' + esc(f.value) + '</strong></div>').join('');
   return '<section class="card prediction-card"><div class="section-heading"><h2>Riesgo cardiovascular</h2><button class="icon-button small" data-action="risk-info" aria-label="Información sobre el riesgo">' + icon('info') + '</button></div>' +
-    '<div class="prediction-overview">' + gauge + '<div>' + riskClassification(p) + '<h3>Estimación a 10 años</h3><p>Probabilidad ficticia de un evento<br>cardiovascular para esta demostración.</p></div></div>' +
+    '<div class="prediction-overview">' + gauge + '<div>' + riskClassification(p) + '<h3>Estimación a 10 años</h3><p>Probabilidad de un evento cardiovascular<br>según el modelo de Cox (Framingham).</p></div></div>' +
     overrideNote(p) +
     '<div class="factors-heading"><h3>Variables que explican la estimación</h3>' + topK + '</div>' +
-    '<div class="factors">' + factors + '</div><p class="factor-caption">Contribución relativa ilustrativa. No implica causalidad.</p></section>';
+    '<div class="factors">' + factors + '</div><p class="factor-caption">Contribución de cada variable a esta estimación (SHAP): ↑ aumenta y ↓ reduce el riesgo. No implica causalidad.</p></section>';
 }
 
 // Línea de tiempo de la historia cardiovascular.

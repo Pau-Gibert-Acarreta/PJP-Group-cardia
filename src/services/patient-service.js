@@ -1,7 +1,7 @@
 // Acceso a los pacientes. Las vistas solo hablan con este servicio, nunca con la API directamente.
 //
 // Datos del Core Backend API (base de datos): identidad, contacto, antecedentes, mediciones,
-// línea temporal, notas y seguimiento. El riesgo de ML sigue simulado (data/demo/simulated-risk.js).
+// línea temporal, notas, seguimiento y la predicción de riesgo del modelo (con su explicación SHAP).
 import { api } from './api-client.js';
 import { toPatient, mergeDetail } from './patient-adapter.js';
 

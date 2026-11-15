@@ -4,17 +4,26 @@ Prototipo de una consulta de Atención Primaria para explorar el riesgo cardiova
 
 ## Ejecutar
 
-Hacen falta tres piezas en marcha:
+Hacen falta cuatro piezas en marcha:
 
 1. La base de datos cargada con el ETL (`build_sources` una vez y `load_sources --reset`): ver [db/README.md](db/README.md).
-2. El backend (Python 3.11+ y [uv](https://docs.astral.sh/uv/)):
+2. El Motor de Riesgo + XAI (modelo de ML), ver [ml/README.md](ml/README.md):
+
+   ```sh
+   cd ml
+   uv run uvicorn service:app --port 8001
+   ```
+
+3. El backend (Python 3.11+ y [uv](https://docs.astral.sh/uv/)), apuntando al Motor de Riesgo:
 
    ```sh
    cd backend
-   uv run uvicorn app.main:app --port 8000
+   CARDIA_ML_RISK_URL=http://127.0.0.1:8001 uv run uvicorn app.main:app --port 8000
    ```
 
-3. El frontend (Node.js 20 o posterior), desde la raíz del repositorio:
+   La primera vez, calcula la predicción de todos los pacientes: `CARDIA_ML_RISK_URL=http://127.0.0.1:8001 uv run python -m app.jobs.backfill_risk` (unos 12 minutos).
+
+4. El frontend (Node.js 20 o posterior), desde la raíz del repositorio:
 
    ```sh
    node scripts/serve.mjs
@@ -28,18 +37,19 @@ En Windows, si el repositorio está en una ruta UNC de WSL, ejecuta directamente
 
 - [db/](db/README.md): esquema PostgreSQL + TimescaleDB + pgvector; fuentes de datos separadas por origen y ETL que las carga.
 - [backend/](backend/README.md): Core Backend API (FastAPI) con los endpoints del frontend, el motor de reglas (`finding-rules.json`) y la API interna para los servicios de ML.
+- [ml/](ml/README.md): modelo de riesgo cardiovascular (Cox entrenado por el equipo con Framingham), su servicio con explicación SHAP y el reentrenamiento periódico.
 
-El frontend lee del backend los datos de la base de datos: identidad, contacto, antecedentes, mediciones, línea temporal, notas y seguimiento. El riesgo de ML y sus variables explicativas siguen simulados en el navegador (`src/data/demo/simulated-risk.js`) hasta que exista el modelo.
+El frontend lee del backend los datos de la base de datos: identidad, contacto, antecedentes, mediciones, línea temporal, notas, seguimiento y la predicción de riesgo del modelo con las variables que la explican.
 
 ## Configuración clínica
 
 - [Indicadores y columnas](src/config/indicators.json): nombres, claves de datos, unidades, decimales, orden de las filas y columnas del resumen.
 - [Reglas de hallazgos](src/config/finding-rules.json): añade, modifica o desactiva alertas sin editar el frontend.
 - [Contrato de datos y configuración](docs/data-contract.md): estructura de las mediciones y ejemplos de reglas.
-- [Datos ficticios](src/data/demo/): riesgo simulado y los 24 pacientes de ejemplo que usan las pruebas de `tests/`.
+- [Datos ficticios](src/data/demo/): los 24 pacientes de ejemplo que usan las pruebas de `tests/`.
 - [Arquitectura del frontend](docs/arquitectura.md): qué hay en cada carpeta, cómo fluye la información y cómo conectar el backend.
 
-Las claves técnicas son provisionales porque todavía no se ha facilitado el esquema de la base de datos. El campo `field` de un indicador y de una regla identifica la misma variable dentro de `patient.measurements`. Cuando exista ese esquema, el adaptador de datos deberá entregar esas claves o se deberán actualizar los JSON. No hay ninguna conexión a una base de datos ni a un modelo de ML.
+El campo `field` de un indicador y de una regla identifica la misma variable dentro de `patient.measurements` y coincide con `indicator.code` en la base de datos.
 
 ## Comprobar
 
@@ -51,8 +61,8 @@ Comprueba la sintaxis de los módulos y ejecuta las pruebas de búsqueda, filtro
 
 ## Notas de la demo
 
-El riesgo y los factores explicativos están simulados. Las reglas de hallazgos usan umbrales ilustrativos pendientes de validación clínica. Las categorías G/A de KDIGO se obtienen de eGFR y ACR y no establecen un diagnóstico de enfermedad renal crónica.
+El riesgo es la probabilidad de evento cardiovascular a 10 años de un modelo de Cox (AUC de test 0,66) entrenado con un dataset docente: no está validado para uso clínico. Las reglas de hallazgos usan umbrales ilustrativos pendientes de validación clínica. Las categorías G/A de KDIGO se obtienen de eGFR y ACR y no establecen un diagnóstico de enfermedad renal crónica.
 
-Las notas de consulta y el seguimiento se guardan en el servidor. Los ajustes de la clasificación de riesgo se guardan en `localStorage`, porque el riesgo que ajustan es simulado; se pueden restablecer desde “Acerca de la demo”. Los hallazgos los calcula el frontend con las mismas reglas que el backend.
+Las notas de consulta y el seguimiento se guardan en el servidor. Los ajustes de la clasificación de riesgo se guardan en `localStorage`; se pueden restablecer desde “Acerca de la demo”. Los hallazgos los calcula el frontend con las mismas reglas que el backend.
 
 Las instrucciones originales del repositorio de la hackathon se conservan en [docs/hackathon-repository.md](docs/hackathon-repository.md).
