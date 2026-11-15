@@ -17,3 +17,9 @@ __pycache__/
 # Fuentes construidas a partir de raw.csv (backend: python -m app.jobs.build_sources): no se versionan
 /data/sources/*
 !/data/sources/.gitkeep
+
+# Medallion del notebook ML (ml/notebooks/01_raw_bronze_silver.ipynb): se regenera desde la base de datos
+/data/bronze/
+/data/silver/
+/data/gold/
+/ml/notebooks/eda_outputs/

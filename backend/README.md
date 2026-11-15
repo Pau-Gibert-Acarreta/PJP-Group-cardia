@@ -105,6 +105,20 @@ uv run python -m app.jobs.ingest_lab_reports              # ~6 min; idempotente 
 - **Endpoints**: `GET /patients/{id}/documents` (lista), `GET /documents/{id}` (metadatos) y `GET /documents/{id}/content` (el PDF, `inline`). El navegador nunca recibe bucket ni clave.
 - **Línea temporal**: un evento por prueba (analítica de sangre, prueba de orina, presión arterial y constantes), cada uno con sus resultados (`GET /patients/{id}/events` → `results`). Solo la analítica tiene «Ver informe del laboratorio (PDF)». Los grupos están en `app/clinical_tests.py`.
 
+## Riesgo cardiovascular (modelo de ML)
+
+El riesgo lo calcula el Motor de Riesgo + XAI (`ml/service.py`, ver [ml/README.md](../ml/README.md)): un Cox entrenado por el equipo con las 6 variables de SCORE2, con explicación SHAP. El backend:
+
+- envía a `POST {CARDIA_ML_RISK_URL}/v1/predict` las variables del último examen del paciente (las pruebas posteriores las actualizan; no rellena huecos con mediciones antiguas, igual que en el entrenamiento);
+- guarda cada respuesta en `risk_prediction` (probabilidad, versión del modelo, SHAP), que el listado y la ficha leen;
+- recalcula tras cada `POST /tests`.
+
+Para calcular la predicción de todo el cupo (la primera vez o tras promocionar un modelo):
+
+```sh
+CARDIA_ML_RISK_URL=http://127.0.0.1:8001 uv run python -m app.jobs.backfill_risk     # ~12 min, 8 hilos
+```
+
 ## API interna para ML (`/api/v1/ml`, cabecera `X-API-Key`)
 
 | Método y ruta | Para |

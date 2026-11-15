@@ -5,10 +5,10 @@ import { getPatients } from '../../services/patient-service.js';
 import { effectiveRiskLevel } from '../../domain/risk.js';
 
 export function openRiskInfo() {
-  openModal('Cómo leer el riesgo en esta demo', '<div class="info-body">' +
-    '<p>El porcentaje representa una <strong>probabilidad ficticia de un evento cardiovascular a 10 años</strong>. Todavía no hay un modelo conectado: se simula en el navegador a partir de la edad y del identificador, solo para probar la interfaz.</p>' +
+  openModal('Cómo leer el riesgo', '<div class="info-body">' +
+    '<p>El porcentaje es la <strong>probabilidad estimada de un evento cardiovascular en los próximos 10 años</strong> (infarto, angina, enfermedad coronaria o ictus). La calcula un modelo de Cox entrenado con el estudio de Framingham a partir de edad, sexo, tabaquismo, presión sistólica, colesterol total y HDL.</p>' +
     '<div class="risk-explanation"><span class="risk-badge low"><i class="dot"></i>Bajo</span><span>Menos del 10 %</span><span class="risk-badge medium"><i class="dot"></i>Medio</span><span>Desde el 10 % hasta menos del 20 %</span><span class="risk-badge high"><i class="dot"></i>Alto</span><span>20 % o más</span></div>' +
-    '<p>Estos umbrales son ilustrativos. Las barras de variables también son simuladas y no son una explicación validada de un modelo.</p>' +
+    '<p>Las barras muestran cuánto aporta cada variable a la estimación de este paciente (valores SHAP): ↑ la aumenta y ↓ la reduce respecto a un paciente medio. Los umbrales del semáforo son ilustrativos.</p>' +
     '<div class="modal-note">' + icon('info') + ' Prototipo para presentación. No utilizar para tomar decisiones clínicas.</div></div>');
 }
 
@@ -16,8 +16,8 @@ export function openAbout() {
   openModal('Más foco en el paciente', '<div class="info-body">' +
     '<p><strong>Cardia</strong> es una primera propuesta para conectar antecedentes, analíticas y evolución en una consulta de Atención Primaria.</p>' +
     '<p>Explora ' + new Intl.NumberFormat('es-ES').format(getPatients().length) + ' pacientes del estudio de Framingham (con nombres y algunas analíticas sintéticas), prioriza por riesgo, consulta pruebas y registra notas.</p>' +
-    '<div class="about-feature">' + icon('flask') + '<div><strong>Una demo para aprender</strong><p>No hay un modelo de machine learning conectado. Las probabilidades y sus contribuciones son simuladas; las mediciones, la historia, las notas y el seguimiento vienen de la base de datos.</p></div></div>' +
-    '<p>Las notas y el seguimiento se guardan en el servidor. Los ajustes de la clasificación de riesgo, al ser sobre un riesgo simulado, se guardan solo en este navegador y puedes restablecerlos.</p>' +
+    '<div class="about-feature">' + icon('flask') + '<div><strong>Una demo para aprender</strong><p>El riesgo lo calcula un modelo de Cox entrenado con el estudio de Framingham (AUC 0,66 en test), con su explicación SHAP. Las mediciones, la historia, las notas y el seguimiento vienen de la base de datos.</p></div></div>' +
+    '<p>Las notas y el seguimiento se guardan en el servidor. Los ajustes de la clasificación de riesgo se guardan en este navegador y puedes restablecerlos.</p>' +
     '<button class="button secondary" data-action="reset-demo">' + icon('reset') + ' Restablecer ajustes de riesgo</button></div>');
 }
 

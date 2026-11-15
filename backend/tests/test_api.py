@@ -38,7 +38,8 @@ def _cleanup():
         conn.execute("DELETE FROM clinical_note WHERE patient_id = %s", [PID])
         conn.execute("DELETE FROM risk_classification_override WHERE patient_id = %s", [PID])
         conn.execute("DELETE FROM patient_followup WHERE patient_id = %s", [PID])
-        conn.execute("DELETE FROM risk_prediction WHERE patient_id = %s", [PID])
+        # Solo las predicciones que crean estas pruebas (modelo "fake"); la real del paciente se conserva.
+        conn.execute("DELETE FROM risk_prediction WHERE patient_id = %s AND model_name = 'fake'", [PID])
         conn.execute("DELETE FROM exam_embedding WHERE embedding_version = 'pytest'")
 
 
@@ -89,7 +90,7 @@ def test_patient_detail(client):
     p = client.get(f"/api/v1/patients/{PID}").json()
     assert p["id"] == "2448" and p["age"] == 52 and p["email"].endswith("@example.test")
     assert [m["value"] for m in p["measurements"]["systolic"]] == [106, 121]
-    assert p["events"] and p["findings"] == [] and p["risk"] is None
+    assert p["events"] and p["findings"] == []
 
 
 def test_unknown_patient_404(client):

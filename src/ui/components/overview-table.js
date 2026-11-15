@@ -28,7 +28,7 @@ export function overviewHeader(config, sort) {
 export function overviewRow(p, config) {
   const level = effectiveRiskLevel(p), kdigo = patientKdigo(p, config);
   return '<tr data-patient-row="' + p.id + '">' +
-    '<td><div class="overview-risk ' + level + '"><strong>' + num(p.risk, 1) + '<span> %</span></strong><span><i class="dot"></i>' + RISK_LABELS[level] + (isRiskOverridden(p) ? '<span class="override-mark" title="Clasificación ajustada por el médico. Modelo: ' + RISK_LABELS[riskLevel(p.risk)] + '">' + icon('edit') + '</span>' : '') + '</span></div></td>' +
+    '<td><div class="overview-risk ' + level + '"><strong>' + (Number.isFinite(p.risk) ? num(p.risk, 1) + '<span> %</span>' : '—') + '</strong><span><i class="dot"></i>' + RISK_LABELS[level] + (isRiskOverridden(p) ? '<span class="override-mark" title="Clasificación ajustada por el médico. Modelo: ' + RISK_LABELS[riskLevel(p.risk)] + '">' + icon('edit') + '</span>' : '') + '</span></div></td>' +
     '<td>' + egfrTrendCell(p, config) + '</td>' +
     '<td><div class="patient-cell">' + avatar(p) + '<div><a class="patient-link" href="#paciente/' + p.id + '">' + esc(p.name) + '</a><small class="patient-demographics">' + p.age + ' años · ' + esc(p.sex) + '</small></div></div></td>' +
     '<td><span class="kdigo-value" title="Categorías de las últimas mediciones disponibles; no establece diagnóstico de ERC">' + (kdigo || 'Sin datos') + '</span></td>' +
