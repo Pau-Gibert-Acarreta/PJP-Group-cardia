@@ -8,6 +8,7 @@ Transformaciones (las que antes hacían los scripts SQL db/002 y db/004, ya reti
 - Mediciones: una fila por valor presente; los ausentes no se guardan.
 - Normalización de nombres: código LOINC del laboratorio -> indicator.code, comprobando la unidad.
 - Derivadas: eGFR con CKD-EPI 2021 a partir de la creatinina, la edad y el sexo de la visita.
+- Línea temporal: un evento por tipo de prueba y día (analítica de sangre, orina, constantes).
 - Trazabilidad: un ingestion_batch por fuente; cada fila apunta al lote del que vino.
 
 Cualquier inconsistencia (paciente desconocido, LOINC sin mapear, unidad distinta) aborta la
@@ -23,6 +24,7 @@ from pathlib import Path
 
 from psycopg import Connection
 
+from ..clinical_tests import KIND_BY_CODE, TEST_KINDS
 from ..settings import REPO_ROOT
 from .sources import rnd
 
@@ -140,8 +142,6 @@ def load(conn: Connection, sources: Path, baseline: date) -> LoadStats:
                               prev_hypertension, ingestion_batch_id)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, exam_rows)
-        cur.executemany("INSERT INTO clinical_event (patient_id, event_time, event_type, title) VALUES (%s, %s, 'exam', %s)",
-                        [(r[0], r[1], f"Examen {r[2]}") for r in exam_rows])
     close(b, len(exam_rows))
 
     # ---- Mediciones: constantes (ancho) y laboratorio (largo, LOINC)
@@ -182,7 +182,14 @@ def load(conn: Connection, sources: Path, baseline: date) -> LoadStats:
         close(b, len(measurements) - before)
     close(pressure_batch, pressure_loaded)
 
+    # ---- Línea temporal: un evento por tipo de prueba realizado ese día (no uno por visita)
+    performed = sorted({(pid, t, KIND_BY_CODE[code].key) for pid, code, t, *_ in measurements if code in KIND_BY_CODE},
+                       key=lambda e: (e[0], e[1], list(TEST_KINDS).index(e[2])))
+    events = [(pid, t, TEST_KINDS[k].event_type, TEST_KINDS[k].title, k) for pid, t, k in performed]
+
     with conn.cursor() as cur:
+        cur.executemany("INSERT INTO clinical_event (patient_id, event_time, event_type, title, test_kind) "
+                        "VALUES (%s, %s, %s, %s, %s)", events)
         with cur.copy("COPY measurement (patient_id, indicator_code, measured_at, value, source, ingestion_batch_id) "
                       "FROM STDIN") as copy:
             for row in measurements:

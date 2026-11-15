@@ -7,7 +7,8 @@ Por cada PDF:
 4. Se comprueba que cada valor impreso coincide con la base de datos, que es la fuente
    de verdad: la ingesta NO crea ni cambia mediciones.
 5. Se guardan los bytes (storage.put) y una fila en `document` con lo extraído y la verificación.
-6. Se enlaza: measurement.document_id y clinical_event.document_id del examen.
+6. Se enlaza con la analítica de sangre: su evento de la línea temporal y sus mediciones
+   (orina y constantes no tienen informe).
 
 Un PDF que no se puede leer, de un paciente desconocido o con valores que no coinciden
 se rechaza y no se enlaza.
@@ -22,6 +23,7 @@ from pathlib import Path
 
 from psycopg import Connection
 
+from ..clinical_tests import TEST_KINDS
 from . import storage
 from .lab_report_parser import LabReportError, matches, parse_pdf
 
@@ -85,15 +87,17 @@ def ingest_file(conn: Connection, path: Path, batch_id: uuid.UUID | None, stats:
                       "verified": True}),
           batch_id])
     storage.put(conn, document_id, data)
+    # El informe documenta la analítica de sangre: solo ese evento y sus mediciones apuntan al PDF.
+    blood = TEST_KINDS["blood"]
     conn.execute("""
         UPDATE measurement SET document_id = %s
         WHERE patient_id = %s AND measured_at = %s AND indicator_code = ANY(%s)
     """, [document_id, report.patient_id, exam["exam_time"],
-          [c for c, v in report.values.items() if v is not None]])
+          [c for c, v in report.values.items() if v is not None and c in blood.codes]])
     conn.execute("""
         UPDATE clinical_event SET document_id = %s,
-               description = 'Analítica con informe del laboratorio (nº de petición ' || %s || ')'
-        WHERE patient_id = %s AND event_time = %s AND event_type = 'exam'
+               description = 'Informe del laboratorio, nº de petición ' || %s
+        WHERE patient_id = %s AND event_time = %s AND test_kind = 'blood'
     """, [document_id, report.request, report.patient_id, exam["exam_time"]])
     stats.ingested += 1
     return document_id

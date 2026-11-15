@@ -52,6 +52,7 @@ Synthetic values (deterministic, from `md5(patient_id + key)`):
 | Measurements | one row per present value, missing values are not stored; vitals `source = 'exam'`, laboratory `source = 'lab'`. |
 | Name normalisation | LOINC → `indicator.code`, checking the unit; an unknown code or unit aborts the load. |
 | Derived | eGFR from creatinine, age and sex with CKD-EPI 2021. |
+| Timeline | one `clinical_event` per test and day, not per visit: blood analysis (`test_kind = 'blood'`), urine test (`urine`) and vital signs (`vitals`). Groups defined in `backend/app/clinical_tests.py`. |
 | Traceability | one `ingestion_batch` per source; every exam and measurement points to its batch. |
 
 The whole load runs in one transaction: any inconsistency leaves the database empty rather than half loaded.

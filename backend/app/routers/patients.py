@@ -12,6 +12,7 @@ from psycopg import errors
 from .. import findings_service, patients_service, risk_service
 from ..deps import AppSettings, Clinician, Config, Conn, PatientId
 from ..formatting import iso, risk_level, risk_percent
+from ..clinical_tests import kinds_for
 from ..knn import service as knn_service
 from ..schemas import FollowupIn, NewTestIn, NoteIn, RiskClassificationIn
 
@@ -189,13 +190,13 @@ def new_test(patient_id: PatientId, body: NewTestIn, conn: Conn, config: Config,
                     VALUES (%s, %s, %s, %s, %s, %s)
                 """, [(patient_id, code, taken_at, value, body.source, body.documentId)
                       for code, value in body.values.items()])
-            is_lab = any(known[c]["kind"] == "lab" for c in body.values)
-            conn.execute("""
-                INSERT INTO clinical_event (patient_id, event_time, event_type, title, description, document_id)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """, [patient_id, taken_at, "laboratory" if is_lab else "exploration",
-                  body.title or ("Nueva analítica" if is_lab else "Nueva exploración"),
-                  ", ".join(known[c]["label"] for c in body.values), body.documentId])
+            # Un evento por tipo de prueba (sangre, orina, constantes); el documento, solo en la analítica.
+            for kind in kinds_for(body.values):
+                conn.execute("""
+                    INSERT INTO clinical_event (patient_id, event_time, event_type, title, test_kind, document_id)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, [patient_id, taken_at, kind.event_type, body.title or kind.title, kind.key,
+                      body.documentId if kind.has_report else None])
     except errors.UniqueViolation:
         raise HTTPException(409, "Ya existe una medición de ese indicador en ese instante")
     except errors.ForeignKeyViolation:

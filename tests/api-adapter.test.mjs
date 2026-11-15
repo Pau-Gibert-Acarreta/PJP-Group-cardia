@@ -41,7 +41,7 @@ test('la ficha añade contacto, eventos en orden cronológico y notas', () => {
     ...apiItem, phone: '630 936 362', email: 'victor.torres.2448@example.test', followup: true,
     events: [
       { id: 'b', date: '2025-12-01T09:00:00Z', title: 'Nueva analítica', type: 'Laboratorio', eventType: 'laboratory', icon: 'flask', description: '' },
-      { id: 'a', date: '2013-01-01', title: 'Examen 1', type: 'Exploración', eventType: 'exam', icon: 'activity', description: '' }
+      { id: 'a', date: '2013-01-01', title: 'Presión arterial y constantes', type: 'Constantes', eventType: 'exploration', testKind: 'vitals', icon: 'heart', description: '' }
     ],
     notes: [{ id: 'n1', text: 'Hola', author: 'Dra. Carmen Vidal', date: '2025-12-01T10:00:00Z' }]
   });

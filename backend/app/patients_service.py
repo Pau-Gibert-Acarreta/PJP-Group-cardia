@@ -7,6 +7,7 @@ from psycopg import Connection
 from psycopg.rows import tuple_row
 
 from . import findings_service
+from .clinical_tests import TEST_KINDS
 from .clinical_config import ClinicalConfig
 from .formatting import SEX_LABELS, initials, iso, normalize_text, risk_level, risk_percent
 
@@ -196,16 +197,32 @@ def get_patient(conn: Connection, patient_id: int, config: ClinicalConfig) -> di
 
 
 def events_for(conn: Connection, patient_id: int) -> list[dict]:
+    """Línea temporal. Cada evento de prueba trae sus propios resultados (solo los de su tipo)."""
     rows = conn.execute("""
-        SELECT event_id, event_time, event_type, title, description, document_id
+        SELECT event_id, event_time, event_type, title, description, test_kind, document_id
         FROM clinical_event WHERE patient_id = %s ORDER BY event_time DESC
-    """, [patient_id])
+    """, [patient_id]).fetchall()
+    values = {(r["measured_at"], r["indicator_code"]): r for r in conn.execute("""
+        SELECT m.measured_at, m.indicator_code, m.value, i.label, i.unit, i.decimals
+        FROM measurement m JOIN indicator i ON i.code = m.indicator_code
+        WHERE m.patient_id = %s
+    """, [patient_id])}
     out = []
     for r in rows:
-        label, icon = EVENT_TYPES.get(r["event_type"], ("Otro", "clipboard"))
+        kind = TEST_KINDS.get(r["test_kind"])
+        if kind:
+            label, icon = kind.label, kind.icon
+            results = [{"field": c, "label": values[(r["event_time"], c)]["label"],
+                        "value": values[(r["event_time"], c)]["value"],
+                        "unit": values[(r["event_time"], c)]["unit"],
+                        "decimals": values[(r["event_time"], c)]["decimals"]}
+                       for c in kind.codes if (r["event_time"], c) in values]
+        else:
+            label, icon = EVENT_TYPES.get(r["event_type"], ("Otro", "clipboard"))
+            results = []
         out.append({"id": str(r["event_id"]), "date": iso(r["event_time"]), "title": r["title"],
-                    "type": label, "eventType": r["event_type"], "icon": icon,
-                    "description": r["description"] or "",
+                    "type": label, "eventType": r["event_type"], "testKind": r["test_kind"], "icon": icon,
+                    "description": r["description"] or "", "results": results,
                     "documentId": str(r["document_id"]) if r["document_id"] else None})
     return out
 
