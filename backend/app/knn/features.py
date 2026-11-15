@@ -15,7 +15,7 @@ ecuaciones de Framingham, D'Agostino 2008, y SCORE2, 2021). HDL pesa poco porque
 en el estudio solo se midió en el tercer examen; casi todos los estados lo tienen imputado.
 
 Solo se usan variables del dataset original de Framingham. HbA1c, creatinina, eGFR y
-ACR se excluyen porque en esta base de datos son sintéticas (db/004_synthetic_fill.sql).
+ACR se excluyen porque en esta base de datos son sintéticas (app/etl/sources.py).
 """
 from __future__ import annotations
 

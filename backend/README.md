@@ -13,7 +13,7 @@ Evento "Nueva prueba" ────▶ POST /api/v1/patients/{id}/tests ──┘
 
 ## Ejecutar
 
-Requiere Python 3.11+, [uv](https://docs.astral.sh/uv/) y la base de datos cargada (ver [db/README.md](../db/README.md)).
+Requiere Python 3.11+, [uv](https://docs.astral.sh/uv/) y la base de datos cargada con el ETL (`app/etl/`, ver [db/README.md](../db/README.md)).
 
 ```sh
 cd backend
