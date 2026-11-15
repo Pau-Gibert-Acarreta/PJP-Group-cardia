@@ -1,7 +1,7 @@
 -- =============================================================================
 -- Cardia · Smoke test for the data layer
 --
--- Run after 001_schema.sql and 002_load_raw_csv.sql:
+-- Run after 001_schema.sql, 002_load_raw_csv.sql (and optionally 004/005):
 --   psql -d cardia -v ON_ERROR_STOP=1 -f db/003_smoke_test.sql
 --
 -- Stops at the first failed check. Everything runs in one transaction that is
@@ -60,12 +60,14 @@ BEGIN
     INSERT INTO exam_embedding (patient_id, exam_time, embedding_version, embedding)
     SELECT patient_id, exam_time, 'smoke',
            ('[' || array_to_string(ARRAY(SELECT (patient_id % (i + 7))::float / (i + 7)
-                                         FROM generate_series(1, 16) i), ',') || ']')::vector
+                                         FROM generate_series(1, 20) i), ',') || ']')::vector
     FROM exam WHERE period = 1 LIMIT 500;
 
     SELECT e.patient_id INTO nearest
     FROM exam_embedding e
-    ORDER BY e.embedding <-> (SELECT embedding FROM exam_embedding WHERE patient_id = 2448)
+    WHERE e.embedding_version = 'smoke'
+    ORDER BY e.embedding <-> (SELECT embedding FROM exam_embedding
+                              WHERE patient_id = 2448 AND embedding_version = 'smoke')
     LIMIT 1;
     ASSERT nearest = 2448, 'KNN: a vector must be its own nearest neighbour';
 

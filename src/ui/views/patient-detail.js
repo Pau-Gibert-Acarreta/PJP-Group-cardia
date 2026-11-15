@@ -11,6 +11,9 @@ import { riskBadge } from '../components/risk-badge.js';
 import { chartPicker, chart } from '../components/chart.js';
 import { renderFindings } from '../components/findings-card.js';
 import { renderIndicators } from '../components/key-indicators.js';
+import { similarCasesCard, similarCasesBody } from '../components/similar-cases.js';
+import { cachedSimilar, loadSimilar } from '../../services/similar-service.js';
+import { currentPatientId } from '../../app/router.js';
 
 function pageHeading(p) {
   return '<section class="page-heading patient-page-heading"><div><a class="back-link" href="#">' + icon('arrow') + ' Volver a pacientes</a>' +
@@ -102,5 +105,22 @@ export function renderPatient(p) {
     '<div class="patient-top-grid">' + identityCard(p) + predictionCard(p) + '</div>' +
     timelineCard(p) +
     '<div class="clinical-grid">' + chartCard(p) + renderFindings(p, clinical.config, clinical.ruleConfig) + '</div>' +
+    similarCasesCard(state.knnIncludeLatest, { loading: true }) +
     '<div class="detail-bottom-grid">' + renderIndicators(p, clinical.config) + notesCard(p) + '</div>';
+  mountSimilarCases(p);
+}
+
+// Casos similares (KNN): se piden al pintar la ficha y se rellenan al llegar.
+// Sin la última prueba al abrir el paciente; con ella cuando el médico lo elige.
+export function mountSimilarCases(p) {
+  const includeLatest = state.knnIncludeLatest;
+  const fill = result => {
+    const slot = $('#similar-cases-body');
+    if (!slot || currentPatientId() !== p.id || state.knnIncludeLatest !== includeLatest) return;
+    slot.innerHTML = similarCasesBody(result.data ? { data: result.data } : {
+      error: result.status === 409 ? result.error + '. Prueba con «Con la última prueba».' : 'No se pueden cargar los casos similares: ' + result.error
+    });
+  };
+  const cached = cachedSimilar(p.id, includeLatest);
+  if (cached) cached.then(fill); else loadSimilar(p.id, includeLatest).then(fill);
 }

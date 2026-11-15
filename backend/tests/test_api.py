@@ -10,6 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import risk_service
+from app.knn.features import DIMENSIONS
 from app.settings import get_settings
 
 PID = 2448
@@ -189,15 +190,57 @@ def test_ml_training_set_pagination(client):
 def test_ml_embeddings_roundtrip(client):
     h = {"X-API-Key": KEY}
     exams = client.get(f"/api/v1/patients/{PID}/events").json()
-    v1, v2 = [0.0] * 16, [1.0] * 16
+    v1, v2 = [0.0] * DIMENSIONS, [1.0] * DIMENSIONS
     items = [{"patientId": PID, "examTime": "2013-01-01T00:00:00Z", "embedding": v1},
              {"patientId": 6238, "examTime": "2013-01-01T00:00:00Z", "embedding": v2}]
     assert client.put("/api/v1/ml/embeddings", json={"version": "pytest", "items": items},
                       headers=h).json()["upserted"] == 2
     hits = client.post("/api/v1/ml/embeddings/search",
-                       json={"version": "pytest", "embedding": [0.1] * 16, "k": 2}, headers=h).json()
+                       json={"version": "pytest", "embedding": [0.1] * DIMENSIONS, "k": 2}, headers=h).json()
     assert [x["patientId"] for x in hits] == ["2448", "6238"]
     excl = client.post("/api/v1/ml/embeddings/search",
                        json={"version": "pytest", "embedding": v1, "excludePatientId": PID}, headers=h).json()
     assert [x["patientId"] for x in excl] == ["6238"]
     assert exams  # el paciente tiene línea temporal
+
+
+# --- KNN de pacientes similares ---------------------------------------------------
+
+@pytest.fixture(scope="module")
+def knn_index():
+    """Construye el índice si no existe (unos segundos con los 11.627 exámenes)."""
+    from psycopg.rows import dict_row
+    from app.knn.service import build_index
+    with psycopg.connect(get_settings().database_url, row_factory=dict_row) as conn:
+        conn.execute("SET search_path = cardia")
+        if conn.execute("SELECT 1 FROM embedding_model WHERE version = 'knn-v1'").fetchone() is None:
+            build_index(conn)
+
+
+def test_similar_without_latest_is_default(client, knn_index):
+    body = client.get("/api/v1/patients/6908452/similar").json()
+    assert body["mode"] == "without_latest" and body["k"] == 7
+    assert body["referenceTime"] < body["latestTestTime"]
+    ids = [n["label"] for n in body["neighbors"]]
+    assert ids == [f"Caso {i}" for i in range(1, 8)]
+    assert all("patientId" not in n for n in body["neighbors"])      # anónimos
+    distances = [n["distance"] for n in body["neighbors"]]
+    assert distances == sorted(distances)
+    n = body["neighbors"][0]
+    assert set(n["values"]) == {f["key"] for f in body["features"]} and len(body["features"]) == 20
+    assert n["outcome"]["cvd"]["status"] in {"event", "none", "before"}
+    assert body["summary"]["withOutcome"] == 7
+
+
+def test_similar_with_latest_uses_last_test(client, knn_index):
+    without = client.get("/api/v1/patients/6908452/similar").json()
+    with_latest = client.get("/api/v1/patients/6908452/similar", params={"include_latest": True}).json()
+    assert with_latest["mode"] == "with_latest"
+    assert with_latest["referenceTime"] == with_latest["latestTestTime"]
+    assert with_latest["patient"]["values"]["age_years"] > without["patient"]["values"]["age_years"]
+
+
+def test_similar_single_test_patient(client, knn_index):
+    # 19304 solo tiene un examen: sin la última prueba no hay estado que comparar.
+    assert client.get("/api/v1/patients/19304/similar").status_code == 409
+    assert client.get("/api/v1/patients/19304/similar", params={"include_latest": True}).status_code == 200

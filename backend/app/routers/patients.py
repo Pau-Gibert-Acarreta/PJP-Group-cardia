@@ -12,6 +12,7 @@ from psycopg import errors
 from .. import findings_service, patients_service, risk_service
 from ..deps import AppSettings, Clinician, Config, Conn, PatientId
 from ..formatting import iso, risk_level, risk_percent
+from ..knn import service as knn_service
 from ..schemas import FollowupIn, NewTestIn, NoteIn, RiskClassificationIn
 
 router = APIRouter(prefix="/patients", tags=["pacientes"])
@@ -71,6 +72,25 @@ def get_risk_assessments(patient_id: PatientId, conn: Conn,
 @router.post("/{patient_id}/risk-assessments/recalculate")
 def recalculate_risk(patient_id: PatientId, conn: Conn, settings: AppSettings):
     return {"risk": risk_service.recalculate(conn, patient_id, settings, trigger="manual")}
+
+
+# --- Pacientes similares (KNN) --------------------------------------------------
+
+@router.get("/{patient_id}/similar")
+def similar_patients(
+    patient_id: PatientId, conn: Conn,
+    include_latest: bool = Query(False, description="false: estado en la penúltima prueba (por defecto); "
+                                                    "true: estado con la última prueba"),
+    k: int = Query(7, ge=1, le=20),
+):
+    """Los k pacientes cuyo estado en algún examen histórico más se parece al de este paciente,
+    con sus valores, diferencias y qué les pasó después."""
+    try:
+        return knn_service.find_similar(conn, patient_id, include_latest=include_latest, k=k)
+    except knn_service.KnnNotReady as exc:
+        raise HTTPException(503, str(exc))
+    except knn_service.NotEnoughTests as exc:
+        raise HTTPException(409, str(exc))
 
 
 # --- Ajuste clínico de la clasificación ---------------------------------------

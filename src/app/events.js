@@ -53,6 +53,6 @@ export function registerEvents() {
   // Cambio de ruta (#paciente/<id> o listado).
   window.addEventListener('hashchange', () => {
     if (!clinical.config) return;
-    closeModal(); state.noteEditing = null; state.chart = 'ldl'; renderApp(); window.scrollTo({ top: 0, behavior: 'instant' });
+    closeModal(); state.noteEditing = null; state.chart = 'ldl'; state.knnIncludeLatest = false; renderApp(); window.scrollTo({ top: 0, behavior: 'instant' });
   });
 }
