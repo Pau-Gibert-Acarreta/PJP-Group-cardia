@@ -10,6 +10,32 @@ export function kdigoCategory(egfr, acr) {
   return g + ' · ' + a;
 }
 
+// Mapa de riesgo KDIGO (filtrado G × albuminuria A): bajo, moderado, alto o muy alto.
+const RISK_MAP = {
+  G1: ['low', 'moderate', 'high'], G2: ['low', 'moderate', 'high'],
+  G3a: ['moderate', 'high', 'very-high'], G3b: ['high', 'very-high', 'very-high'],
+  G4: ['very-high', 'very-high', 'very-high'], G5: ['very-high', 'very-high', 'very-high']
+};
+export const KDIGO_RISK_LABELS = { low: 'bajo', moderate: 'moderadamente aumentado', high: 'alto', 'very-high': 'muy alto' };
+
+export function kdigoRisk(egfr, acr) {
+  const category = kdigoCategory(egfr, acr);
+  if (!category) return null;
+  const [g, a] = category.split(' · ');
+  return RISK_MAP[g][Number(a.slice(1)) - 1];
+}
+
+function latestKdigoValues(patient, config) {
+  const egfr = config.indicators.find(item => item.field === config.kdigoFields.egfr);
+  const acr = config.indicators.find(item => item.field === config.kdigoFields.acr);
+  if (!egfr || !acr || egfr.unit !== 'mL/min/1,73 m²' || acr.unit !== 'mg/g') return [undefined, undefined];
+  return [getSeries(patient, egfr).at(-1)?.value, getSeries(patient, acr).at(-1)?.value];
+}
+
+export function patientKdigoRisk(patient, config) {
+  return kdigoRisk(...latestKdigoValues(patient, config));
+}
+
 export function patientKdigo(patient, config) {
   const egfr = config.indicators.find(item => item.field === config.kdigoFields.egfr);
   const acr = config.indicators.find(item => item.field === config.kdigoFields.acr);

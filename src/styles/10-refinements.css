@@ -802,3 +802,23 @@
 .detail-bottom-grid .comparison-date {
   white-space: nowrap;
 }
+
+/* Indicadores clave a todo el ancho (mismas filas, misma altura) y notas debajo */
+.detail-bottom-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+.indicator-table {
+  width: 100%;
+}
+.indicator-table th, .indicator-table td {
+  width: auto;
+}
+.detail-bottom-grid .notes-layout {
+  grid-template-columns: 1.1fr 1fr;
+  grid-template-rows: auto;
+}
+@media (max-width: 760px) {
+  .detail-bottom-grid .notes-layout {
+    grid-template-columns: 1fr;
+  }
+}

@@ -16,16 +16,18 @@ const HEADINGS = {
 
 const CONDITIONS = ['Hipertensión', 'Diabetes tipo 2', 'Enf. renal crónica', 'Dislipidemia', 'Tabaquismo'];
 
+// Fecha de hoy según el reloj del equipo, en español (15 de noviembre de 2026).
+export const today = (date = new Date()) => new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+
 // Contadores con separador de miles (4.434).
 const count = n => new Intl.NumberFormat('es-ES').format(n);
 
 const SORT_OPTIONS = [['risk-desc', 'Mayor riesgo primero'], ['risk-asc', 'Menor riesgo primero'], ['name', 'Nombre: A–Z'], ['age', 'Mayor edad primero'], ['recent', 'Analítica más reciente']];
 
-function statCard(level, label, count, caption, glyph) {
+function statCard(level, label, count, glyph) {
   return '<button class="stat-card ' + level + '" data-action="risk-filter" data-risk="' + level + '">' +
     '<div class="stat-title">' + label + '<span class="stat-icon">' + icon(glyph) + '</span></div>' +
-    '<div class="stat-value">' + count + '<span>pacientes</span></div>' +
-    '<div class="stat-caption">' + (level !== 'all' ? '<span class="dot"></span>' : '') + caption + '</div></button>';
+    '<div class="stat-value">' + count + '<span>pacientes</span></div></button>';
 }
 
 function filterSelect(key, label, options) {
@@ -36,16 +38,16 @@ function filterSelect(key, label, options) {
 function pageHeading() {
   const [title, subtitle] = HEADINGS[state.nav] || HEADINGS.patients;
   return '<section class="page-heading"><div><div class="eyebrow">VISIÓN GLOBAL</div><h1>' + title + '</h1><p>' + subtitle + '</p></div>' +
-    '<div class="date-label">' + icon('calendar') + ' 14 de noviembre de 2026</div></section>';
+    '<div class="date-label">' + icon('calendar') + ' ' + today() + '</div></section>';
 }
 
 function summaryCards(patients) {
   const byLevel = level => count(patients.filter(p => effectiveRiskLevel(p) === level).length);
   return '<section class="stats-grid" aria-label="Resumen del cupo">' +
-    statCard('all', 'Total de pacientes', count(patients.length), 'En tu cupo', 'users') +
-    statCard('high', 'Riesgo alto', byLevel('high'), 'Prioriza su revisión', 'heart') +
-    statCard('medium', 'Riesgo medio', byLevel('medium'), 'Observa su evolución', 'activity') +
-    statCard('low', 'Riesgo bajo', byLevel('low'), 'Seguimiento habitual', 'shield') + '</section>';
+    statCard('all', 'Total de pacientes', count(patients.length), 'users') +
+    statCard('high', 'Riesgo alto', byLevel('high'), 'alert') +
+    statCard('medium', 'Riesgo medio', byLevel('medium'), 'question') +
+    statCard('low', 'Riesgo bajo', byLevel('low'), 'shield') + '</section>';
 }
 
 function filtersDropdown() {

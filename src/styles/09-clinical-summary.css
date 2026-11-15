@@ -586,3 +586,13 @@
     font-size: 18px;
   }
 }
+
+/* KDIGO en el listado: colores del mapa de riesgo (filtrado × albuminuria) */
+.kdigo-value.kdigo-low { background: #7dbb83; border-color: #6aab71; color: #1f3d24 !important; }
+.kdigo-value.kdigo-moderate { background: #f6d35f; border-color: #e6c24c; color: #4a3b07 !important; }
+.kdigo-value.kdigo-high { background: #f0a04b; border-color: #e08e39; color: #4a2604 !important; }
+.kdigo-value.kdigo-very-high { background: #d9534a; border-color: #c4443b; color: #fff !important; }
+.sex-symbol {
+  font-size: 14px;
+  line-height: 1;
+}

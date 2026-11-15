@@ -29,10 +29,8 @@ function topbar(onPatientPage) {
     '</div></header>';
 }
 
-const footer = () =>
-  '<footer class="page-footer"><span>Cardia · Una visión más completa del paciente</span><span>' + icon('shield') + ' Prototipo con datos sintéticos</span></footer>';
 
 export function layout(onPatientPage) {
   return sidebar() +
-    '<div class="main-shell">' + topbar(onPatientPage) + '<main id="main-content" class="content"></main>' + footer() + '</div>';
+    '<div class="main-shell">' + topbar(onPatientPage) + '<main id="main-content" class="content"></main>' + '</div>';
 }
