@@ -2,7 +2,35 @@
 
 Prototipo de una consulta de Atención Primaria para explorar el riesgo cardiovascular de los 4.434 pacientes del estudio de Framingham (con identidades y algunas analíticas sintéticas). Incluye búsqueda, filtros, ordenación, fichas individuales, historial de pruebas, gráficas, indicadores, hallazgos y notas.
 
-## Ejecutar
+## Puesta en marcha (un solo comando)
+
+Requisitos: **Docker Desktop**, **Node.js 20+** y el dataset en **`data/raw.csv`** (no está en git: cópialo ahí). Python no hace falta: el script instala [uv](https://docs.astral.sh/uv/) y uv trae el Python correcto.
+
+| Sistema | Comando (desde la raíz del repositorio) |
+| --- | --- |
+| Windows | doble clic en `setup.cmd`, o `powershell -ExecutionPolicy Bypass -File setup.ps1` |
+| macOS / Linux | `./setup.sh` |
+
+El script ([scripts/bootstrap.py](scripts/bootstrap.py)) hace todo y deja la app en marcha en [http://localhost:5173](http://localhost:5173) hasta Ctrl+C:
+
+1. Comprueba los requisitos (arranca Docker si está parado).
+2. Instala las dependencias de Python de `backend/` y `ml/`.
+3. Crea y arranca la base de datos (contenedor `cardia-db`, datos en el volumen `cardia-db-data`).
+4. Construye las fuentes desde `raw.csv`, carga la base de datos con el ETL, calcula los hallazgos y el índice KNN.
+5. Arranca el Motor de Riesgo (8001), el backend (8000) y el frontend (5173).
+6. Calcula el riesgo de todos los pacientes y genera e ingesta las analíticas PDF.
+
+La primera vez tarda unos 30 minutos (sobre todo los pasos 6). Volver a ejecutarlo es rápido: salta lo que ya está hecho y solo arranca los servicios. Registros en `logs/`.
+
+| Opción | Para qué |
+| --- | --- |
+| `--reset` | Vaciar y recargar la base de datos desde cero |
+| `--skip-pdfs` | No generar ni ingestar las analíticas PDF |
+| `--no-serve` | Prepararlo todo y terminar sin dejar los servicios en marcha |
+| `--check` | Al final, ejecutar el smoke test de la base de datos y todas las pruebas |
+| `--db-port`, `--api-port`, `--ml-port`, `--web-port`, `--db-container` | Cambiar puertos o el nombre del contenedor |
+
+## Ejecutar a mano
 
 Hacen falta cuatro piezas en marcha:
 

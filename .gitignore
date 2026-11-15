@@ -23,3 +23,6 @@ __pycache__/
 /data/silver/
 /data/gold/
 /ml/notebooks/eda_outputs/
+
+# Registros de scripts/bootstrap.py
+/logs/
