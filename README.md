@@ -19,7 +19,7 @@ A GP's list has thousands of patients and no time to review them all. Cardia ran
 | **Reproducibility** | Training is rebuilt from the database with the same features: reproduces the original coefficients to ~1e-11 and the 454 held-out test predictions exactly |
 | **Rules engine** | Clinical findings defined in a [JSON rule file](src/config/finding-rules.json) shared by backend (Python) and frontend (JS), tested for identical behaviour |
 | **Similar patients** | KNN (k = 7) on 20 original Framingham variables, z-scored and weighted, one embedding per patient state |
-| **DevEx** | One-command setup on Windows/macOS/Linux, Docker Compose, GitHub Actions CI, 94 automated tests |
+| **Developer experience** | One-command setup on Windows/macOS/Linux, Docker Compose, GitHub Actions CI, 94 automated tests |
 
 ## Quick start
 
@@ -61,16 +61,20 @@ scripts/       bootstrap (one-command setup), dev server with /api proxy, checks
 
 These `candidate_XXX.py` files are the output of an **agentic pipeline search**: an LLM-driven loop that proposed, trained and scored survival pipelines. The best one became the provisional champion (`best_pipeline.py`) before the scheduled retraining architecture was in place. They are kept as an audit trail of the search; see [its README](ml/experiments/coxph/README.md).
 
-## My contributions (Pau Gibert)
+## My role (Pau Gibert)
 
-- Data layer: PostgreSQL/TimescaleDB/pgvector schema, per-source ETL with LOINC mapping, synthetic data generation.
-- Core backend API (FastAPI) and the rules engine; connected the frontend to it and implemented rules v2 (ESH/ESC, ADA, KDIGO).
-- Similar-patient search (KNN with pgvector).
-- Lab-report pipeline: PDF generation from the DB, parsing and verified ingestion.
-- Productionising the team's risk model: serving microservice, exact SHAP, training from the database, model registry, frontend integration.
-- One-command setup, Docker Compose and CI.
+**System architecture and data/ML platform.** I designed the overall architecture and built most of it: all of `db/` and `backend/`, the serving, training and explainability code in `ml/`, and the setup tooling, which adds up to over half of the hand-written code in the repository.
 
-Teammates designed the UI/UX and the first frontend layout, and ran the model search.
+- **Data layer:** PostgreSQL/TimescaleDB/pgvector schema, per-source landing files with LOINC mapping, idempotent ETL and deterministic synthetic data.
+- **Core API:** FastAPI backend with the guideline-based rules engine (v2: ESH/ESC, ADA, KDIGO), shared with the frontend.
+- **Similar patients:** point-in-time feature engineering and KNN search on pgvector.
+- **Lab reports:** PDFs generated from the database, then parsed and verified against it on ingestion.
+- **Model to production:** took the team's frozen CoxPH model into a serving microservice with exact SHAP, rebuilt its training set from the database (reproducing the original weights), and added a Champion/Challenger registry and retraining entry point.
+- **Developer experience:** one-command setup on every OS, Docker Compose and CI.
+
+**Modelling approach.** I proposed obtaining the model through an agentic pipeline search and guided the teammate who ran it.
+
+**Frontend.** The UI/UX was designed and built by teammates. I gave feedback on it, connected it to the backend API (data adapter, risk explanations, similar-patients card, one timeline event per test) and implemented a round of UI refinements.
 
 ## Roadmap (not done in the 2 days)
 
