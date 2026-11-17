@@ -1,0 +1,10 @@
+# Frontend (vanilla JS, no build step) served by a small Node server that proxies /api to the backend.
+FROM node:20-alpine
+WORKDIR /app
+COPY package.json index.html ./
+COPY assets ./assets
+COPY src ./src
+COPY scripts/serve.mjs ./scripts/serve.mjs
+ENV HOST=0.0.0.0 PORT=5173
+EXPOSE 5173
+CMD ["node", "scripts/serve.mjs"]

@@ -1,6 +1,6 @@
 # Búsqueda de modelos CoxPH (equipo)
 
-Resultados de la búsqueda de pipelines de supervivencia del equipo, tal cual se generaron.
+Resultados de la búsqueda de pipelines de supervivencia del equipo, tal cual se generaron. La búsqueda fue un *agentic pipeline search*: un bucle con un LLM que proponía, entrenaba y puntuaba pipelines; el mejor quedó como Champion provisional antes de montar el reentrenamiento programado. Se conservan como registro auditable de la búsqueda.
 
 | Archivo | Contenido |
 | --- | --- |

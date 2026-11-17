@@ -1,0 +1,89 @@
+# Cardia: full stack with Docker Compose.
+#
+#   docker compose --profile init run --rm init # first time: schema + ETL + rules + KNN index + risk backfill
+#                                               # (needs the Framingham CSV at data/raw.csv)
+#   docker compose up -d                        # database, risk engine, backend and frontend
+#
+# Frontend: http://localhost:5173 · API docs: http://localhost:8000/docs · Risk engine: http://localhost:8001/docs
+# Credentials are for local development only.
+
+x-db-url: &db-url postgresql://postgres:cardia@db:5432/cardia
+
+services:
+  db:
+    image: timescale/timescaledb-ha:pg16
+    environment:
+      POSTGRES_PASSWORD: cardia
+      POSTGRES_DB: cardia
+    ports: ["${CARDIA_DB_PORT:-5432}:5432"]
+    volumes: [db-data:/home/postgres/pgdata]
+    healthcheck:
+      test: ["CMD-SHELL", "psql -U postgres -d cardia -Atc 'SELECT 1' | grep -q 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  ml:
+    build: ./ml
+    environment:
+      CARDIA_DATABASE_URL: *db-url
+    ports: ["${CARDIA_ML_PORT:-8001}:8001"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      CARDIA_DATABASE_URL: *db-url
+      CARDIA_ML_RISK_URL: http://ml:8001
+    ports: ["${CARDIA_API_PORT:-8000}:8000"]
+    restart: on-failure   # waits for the init job if the schema is not loaded yet
+    depends_on:
+      db: {condition: service_healthy}
+      ml: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    environment:
+      CARDIA_API_URL: http://backend:8000
+    ports: ["${CARDIA_WEB_PORT:-5173}:5173"]
+    depends_on:
+      backend: {condition: service_healthy}
+
+  # One-shot data pipeline (batch jobs). Idempotent: reloads the database from data/raw.csv.
+  init:
+    profiles: [init]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      CARDIA_DATABASE_URL: *db-url
+      CARDIA_ML_RISK_URL: http://ml:8001
+    volumes: [./data:/app/data]
+    depends_on:
+      db: {condition: service_healthy}
+      ml: {condition: service_healthy}
+    command:
+      - sh
+      - -c
+      - >-
+        python -m app.jobs.build_sources &&
+        python -m app.jobs.load_sources --reset &&
+        python -m app.jobs.evaluate_findings &&
+        python -m app.jobs.build_knn_index &&
+        python -m app.jobs.backfill_risk --only-missing
+
+volumes:
+  db-data:

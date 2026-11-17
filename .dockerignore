@@ -1,0 +1,10 @@
+**/.venv
+**/__pycache__
+**/.pytest_cache
+.git
+data
+logs
+node_modules
+ml/notebooks
+ml/experiments/coxph/code
+*.pdf

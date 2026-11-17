@@ -34,4 +34,4 @@ http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': types[path.extname(target)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
     res.end(content);
   } catch { res.writeHead(404); res.end('Archivo no encontrado'); }
-}).listen(port, '127.0.0.1', () => console.log('Cardia disponible en http://localhost:' + port + ' (API: ' + api.origin + ')'));
+}).listen(port, process.env.HOST || '127.0.0.1', () => console.log('Cardia disponible en http://localhost:' + port + ' (API: ' + api.origin + ')'));

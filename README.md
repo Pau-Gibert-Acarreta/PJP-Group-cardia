@@ -1,96 +1,89 @@
-# Cardia
+# Cardia — cardiovascular risk prioritisation for primary care
 
-Prototipo de una consulta de Atención Primaria para explorar el riesgo cardiovascular de los 4.434 pacientes del estudio de Framingham (con identidades y algunas analíticas sintéticas). Incluye búsqueda, filtros, ordenación, fichas individuales, historial de pruebas, gráficas, indicadores, hallazgos y notas.
+> Built in a **2-day hackathon** (Boehringer Ingelheim IT hackathon, November 2026) as a team.
+> Demo with the Framingham teaching dataset plus synthetic identities and lab values — **not for clinical use**.
+> [Versión en español](README.es.md)
 
-## Puesta en marcha (un solo comando)
+A GP's list has thousands of patients and no time to review them all. Cardia ranks the list by **10-year cardiovascular risk**, explains *why* each patient is at risk (SHAP), raises **guideline-based findings** (ESH/ESC, ADA, KDIGO) when new lab results arrive, and shows **similar historical patients and what happened to them** (KNN).
 
-Requisitos: **Docker Desktop**, **Node.js 20+** y el dataset en **`data/raw.csv`** (no está en git: cópialo ahí). Python no hace falta: el script instala [uv](https://docs.astral.sh/uv/) y uv trae el Python correcto.
+![Architecture](imgs/architecture.png)
 
-| Sistema | Comando (desde la raíz del repositorio) |
-| --- | --- |
-| Windows | doble clic en `setup.cmd`, o `powershell -ExecutionPolicy Bypass -File setup.ps1` |
-| macOS / Linux | `./setup.sh` |
+## Highlights
 
-El script ([scripts/bootstrap.py](scripts/bootstrap.py)) hace todo y deja la app en marcha en [http://localhost:5173](http://localhost:5173) hasta Ctrl+C:
+| Area | What it does |
+|---|---|
+| **Data platform** | PostgreSQL 16 + **TimescaleDB** hypertables for exams, measurements and predictions; **pgvector** HNSW index for patient similarity |
+| **Data engineering** | Per-source landing files (blood, vitals, urine) coded with **LOINC**, idempotent Python ETL, deterministic synthetic data, explicit [data contract](docs/data-contract.md) |
+| **Data quality** | The database is the single source of truth: lab-report PDFs are *generated from* the DB and, on ingestion, every printed value is parsed and **verified against the DB** before the document is linked |
+| **ML** | Cox proportional-hazards model with splines on the 6 SCORE2 variables, served as a separate **FastAPI microservice** with a frozen model, **exact SHAP** (all 64 coalitions) and a Champion/Challenger registry |
+| **Reproducibility** | Training is rebuilt from the database with the same features: reproduces the original coefficients to ~1e-11 and the 454 held-out test predictions exactly |
+| **Rules engine** | Clinical findings defined in a [JSON rule file](src/config/finding-rules.json) shared by backend (Python) and frontend (JS), tested for identical behaviour |
+| **Similar patients** | KNN (k = 7) on 20 original Framingham variables, z-scored and weighted, one embedding per patient state |
+| **DevEx** | One-command setup on Windows/macOS/Linux, Docker Compose, GitHub Actions CI, 94 automated tests |
 
-1. Comprueba los requisitos (arranca Docker si está parado).
-2. Instala las dependencias de Python de `backend/` y `ml/`.
-3. Crea y arranca la base de datos (contenedor `cardia-db`, datos en el volumen `cardia-db-data`).
-4. Construye las fuentes desde `raw.csv`, carga la base de datos con el ETL, calcula los hallazgos y el índice KNN.
-5. Arranca el Motor de Riesgo (8001), el backend (8000) y el frontend (5173).
-6. Calcula el riesgo de todos los pacientes y genera e ingesta las analíticas PDF.
+## Quick start
 
-La primera vez tarda unos 30 minutos (sobre todo los pasos 6). Volver a ejecutarlo es rápido: salta lo que ya está hecho y solo arranca los servicios. Registros en `logs/`.
-
-| Opción | Para qué |
-| --- | --- |
-| `--reset` | Vaciar y recargar la base de datos desde cero |
-| `--skip-pdfs` | No generar ni ingestar las analíticas PDF |
-| `--no-serve` | Prepararlo todo y terminar sin dejar los servicios en marcha |
-| `--check` | Al final, ejecutar el smoke test de la base de datos y todas las pruebas |
-| `--db-port`, `--api-port`, `--ml-port`, `--web-port`, `--db-container` | Cambiar puertos o el nombre del contenedor |
-
-## Ejecutar a mano
-
-Hacen falta cuatro piezas en marcha:
-
-1. La base de datos cargada con el ETL (`build_sources` una vez y `load_sources --reset`): ver [db/README.md](db/README.md).
-2. El Motor de Riesgo + XAI (modelo de ML), ver [ml/README.md](ml/README.md):
-
-   ```sh
-   cd ml
-   uv run uvicorn service:app --port 8001
-   ```
-
-3. El backend (Python 3.11+ y [uv](https://docs.astral.sh/uv/)), apuntando al Motor de Riesgo:
-
-   ```sh
-   cd backend
-   CARDIA_ML_RISK_URL=http://127.0.0.1:8001 uv run uvicorn app.main:app --port 8000
-   ```
-
-   La primera vez, calcula la predicción de todos los pacientes: `CARDIA_ML_RISK_URL=http://127.0.0.1:8001 uv run python -m app.jobs.backfill_risk` (unos 12 minutos).
-
-4. El frontend (Node.js 20 o posterior), desde la raíz del repositorio:
-
-   ```sh
-   node scripts/serve.mjs
-   ```
-
-Abre [http://localhost:5173](http://localhost:5173). El servidor del frontend entrega los archivos estáticos y reenvía `/api/*` al backend (`http://127.0.0.1:8000`; cámbialo con `CARDIA_API_URL`). No hace falta instalar paquetes de Node. También puedes usar `npm run dev`.
-
-En Windows, si el repositorio está en una ruta UNC de WSL, ejecuta directamente `node scripts/serve.mjs` desde PowerShell; así evitas la restricción de rutas UNC de CMD al ejecutar scripts npm. Desde WSL necesitas una instalación de Node disponible en esa distribución.
-
-## Backend y datos
-
-- [db/](db/README.md): esquema PostgreSQL + TimescaleDB + pgvector; fuentes de datos separadas por origen y ETL que las carga.
-- [backend/](backend/README.md): Core Backend API (FastAPI) con los endpoints del frontend, el motor de reglas (`finding-rules.json`) y la API interna para los servicios de ML.
-- [ml/](ml/README.md): modelo de riesgo cardiovascular (Cox entrenado por el equipo con Framingham), su servicio con explicación SHAP y el reentrenamiento periódico.
-
-El frontend lee del backend los datos de la base de datos: identidad, contacto, antecedentes, mediciones, línea temporal, notas, seguimiento y la predicción de riesgo del modelo con las variables que la explican.
-
-## Configuración clínica
-
-- [Indicadores y columnas](src/config/indicators.json): nombres, claves de datos, unidades, decimales, orden de las filas y columnas del resumen.
-- [Reglas de hallazgos](src/config/finding-rules.json): añade, modifica o desactiva alertas sin editar el frontend.
-- [Contrato de datos y configuración](docs/data-contract.md): estructura de las mediciones y ejemplos de reglas.
-- [Datos ficticios](src/data/demo/): los 24 pacientes de ejemplo que usan las pruebas de `tests/`.
-- [Arquitectura del frontend](docs/arquitectura.md): qué hay en cada carpeta, cómo fluye la información y cómo conectar el backend.
-
-El campo `field` de un indicador y de una regla identifica la misma variable dentro de `patient.measurements` y coincide con `indicator.code` en la base de datos.
-
-## Comprobar
+**Docker Compose** (needs Docker and the Framingham CSV at `data/raw.csv`, which is not versioned):
 
 ```sh
-node scripts/check.mjs
+docker compose --profile init run --rm init   # first time: schema, ETL, findings, KNN index, risk backfill (~15 min)
+docker compose up -d                          # db, risk engine, backend, frontend
 ```
 
-Comprueba la sintaxis de los módulos y ejecuta las pruebas de búsqueda, filtros, historiales, cambios, reglas, datos ausentes y categorías KDIGO. También está disponible `npm run check`.
+Frontend http://localhost:5173 · API docs http://localhost:8000/docs · Risk engine http://localhost:8001/docs
 
-## Notas de la demo
+**One-command local setup** (installs uv and the right Python, starts everything, also generates the lab PDFs): `setup.cmd` on Windows or `./setup.sh` on macOS/Linux. See [README.es.md](README.es.md) for options.
 
-El riesgo es la probabilidad de evento cardiovascular a 10 años de un modelo de Cox (AUC de test 0,66) entrenado con un dataset docente: no está validado para uso clínico. Las reglas de hallazgos usan umbrales ilustrativos pendientes de validación clínica. Las categorías G/A de KDIGO se obtienen de eGFR y ACR y no establecen un diagnóstico de enfermedad renal crónica.
+## Repository layout
 
-Las notas de consulta y el seguimiento se guardan en el servidor. Los ajustes de la clasificación de riesgo se guardan en `localStorage`; se pueden restablecer desde “Acerca de la demo”. Los hallazgos los calcula el frontend con las mismas reglas que el backend.
+```
+db/            SQL schema (TimescaleDB hypertables, pgvector index) and smoke test
+backend/       FastAPI Core API
+  app/etl/        source builders and loader (LOINC → indicators)
+  app/jobs/       batch jobs: load, findings, KNN index, lab PDFs, risk backfill
+  app/knn/        feature engineering and similarity search
+  app/documents/  PDF parser, verified ingestion, storage backend
+ml/            Risk engine: model registry, serving (service.py), training from the DB, SHAP
+  experiments/coxph/  agentic pipeline search that found the provisional champion
+src/           Frontend (vanilla JS ES modules, no build step) and shared clinical config
+scripts/       bootstrap (one-command setup), dev server with /api proxy, checks
+```
 
-Las instrucciones originales del repositorio de la hackathon se conservan en [docs/hackathon-repository.md](docs/hackathon-repository.md).
+## Design decisions
+
+- **Separate risk-engine service.** The model needs pinned scientific libraries (Python 3.12, scikit-learn 1.9.1, scipy 1.18) to unpickle; isolating it keeps the API light and makes the model swappable. It receives only the 6 clinical features — no identities.
+- **Database as source of truth, PDFs as a derived artefact.** Mirrors a real lab integration (LIS → PDF) while guaranteeing the document never disagrees with the data.
+- **Time-series first.** Clinical measurements are append-only and queried by patient and time, so TimescaleDB hypertables fit naturally; the KNN state is computed "as of" each test so no future data leaks in.
+- **Rules as data.** Clinicians can add or tune findings without code changes; the same file drives backend and frontend.
+- **Validated equations over custom models where data is missing.** Framingham has no kidney outcomes, so kidney-risk prediction is planned with published equations (KFRE, CKD-PC) instead of training on unsuitable data.
+
+## About `ml/experiments/coxph/code/`
+
+These `candidate_XXX.py` files are the output of an **agentic pipeline search**: an LLM-driven loop that proposed, trained and scored survival pipelines. The best one became the provisional champion (`best_pipeline.py`) before the scheduled retraining architecture was in place. They are kept as an audit trail of the search; see [its README](ml/experiments/coxph/README.md).
+
+## My contributions (Pau Gibert)
+
+- Data layer: PostgreSQL/TimescaleDB/pgvector schema, per-source ETL with LOINC mapping, synthetic data generation.
+- Core backend API (FastAPI) and the rules engine; connected the frontend to it and implemented rules v2 (ESH/ESC, ADA, KDIGO).
+- Similar-patient search (KNN with pgvector).
+- Lab-report pipeline: PDF generation from the DB, parsing and verified ingestion.
+- Productionising the team's risk model: serving microservice, exact SHAP, training from the database, model registry, frontend integration.
+- One-command setup, Docker Compose and CI.
+
+Teammates designed the UI/UX and the first frontend layout, and ran the model search.
+
+## Roadmap (not done in the 2 days)
+
+| Now | Next |
+|---|---|
+| Batch jobs run by the setup script | Orchestrator (Dagster / Airflow) with scheduled retraining and data-quality checks |
+| `registry.json` + joblib Champion/Challenger | MLflow model registry and experiment tracking; drift and calibration monitoring |
+| Pickled model pinned to library versions | Portable format (ONNX) or retrain-on-deploy |
+| No authentication, local credentials | OIDC SSO + RBAC per GP list, access audit log, secrets manager, TLS |
+| Identity and clinical data in one schema | Pseudonymisation (separate identity store), de-identified training views |
+| Custom JSON API | HL7 FHIR (`Patient`, `Observation`, `DiagnosticReport`), SNOMED CT |
+| Cardiovascular risk only | Kidney risk: KDIGO heat-map card, KFRE (2/5-year kidney failure), CKD-PC incident CKD |
+
+## Limitations
+
+The risk model (test AUC 0.66) is trained on a teaching dataset and is not clinically validated. Renal labs, identities and contact details are synthetic. Rule thresholds are illustrative.

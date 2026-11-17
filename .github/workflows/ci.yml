@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  frontend:
+    name: Frontend (syntax + unit tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/check.mjs
+
+  backend:
+    name: Backend (rules engine, ETL, KNN features)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      # Tests that need the loaded database are skipped (the Framingham CSV is not versioned).
+      - run: uv run pytest -q -rs
+
+  ml:
+    name: ML (frozen model, SHAP, serving contract)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --group dev
+      - run: uv run --group dev pytest -q -rs
+
+  database:
+    name: Database schema (TimescaleDB + pgvector)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: timescale/timescaledb-ha:pg16
+        env:
+          POSTGRES_PASSWORD: cardia
+          POSTGRES_DB: cardia
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGPASSWORD: cardia
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply schema
+        run: |
+          for f in db/001_schema.sql db/005_knn.sql; do
+            psql -h localhost -U postgres -d cardia -v ON_ERROR_STOP=1 -q -f "$f"
+          done
+      - name: Check hypertables and vector index
+        run: |
+          psql -h localhost -U postgres -d cardia -Atc "SELECT count(*) FROM timescaledb_information.hypertables" | grep -qv '^0$'
+          psql -h localhost -U postgres -d cardia -Atc "SELECT extname FROM pg_extension" | grep -q vector
+
+  compose:
+    name: Docker images build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose build
