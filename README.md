@@ -63,16 +63,16 @@ These `candidate_XXX.py` files are the output of an **agentic pipeline search**:
 
 ## My role (Pau Gibert)
 
-**System architecture and data/ML platform.** I designed the overall architecture and built most of it: all of `db/` and `backend/`, the serving, training and explainability code in `ml/`, and the setup tooling, which adds up to over half of the hand-written code in the repository.
+**System architecture and data/ML platform.** I designed the overall architecture and built most of the platform around it: the database, the backend API, the model-serving layer and the setup tooling.
 
 - **Data layer:** PostgreSQL/TimescaleDB/pgvector schema, per-source landing files with LOINC mapping, idempotent ETL and deterministic synthetic data.
 - **Core API:** FastAPI backend with the guideline-based rules engine (v2: ESH/ESC, ADA, KDIGO), shared with the frontend.
 - **Similar patients:** point-in-time feature engineering and KNN search on pgvector.
 - **Lab reports:** PDFs generated from the database, then parsed and verified against it on ingestion.
-- **Model to production:** took the team's frozen CoxPH model into a serving microservice with exact SHAP, rebuilt its training set from the database (reproducing the original weights), and added a Champion/Challenger registry and retraining entry point.
+- **Model serving:** put the CoxPH model trained by a teammate into production as a microservice with exact SHAP explanations and a Champion/Challenger model registry, reading its data from the database.
 - **Developer experience:** one-command setup on every OS, Docker Compose and CI.
 
-**Modelling approach.** I proposed obtaining the model through an agentic pipeline search and guided the teammate who ran it.
+**Modelling strategy.** I proposed the strategy for finding the model, an agentic pipeline search over survival models. A teammate ran the search and trained the model.
 
 **Frontend.** The UI/UX was designed and built by teammates. I gave feedback on it, connected it to the backend API (data adapter, risk explanations, similar-patients card, one timeline event per test) and implemented a round of UI refinements.
 
